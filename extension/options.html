@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fred options</title>
+<style>
+  body { font-family: system-ui, sans-serif; background:#14110D; color:#F4EFE7; margin:0; }
+  .wrap { max-width: 560px; margin: 40px auto; padding: 0 20px; }
+  h1 { font-size: 20px; } label { display:block; font-size:12px; font-weight:600; color:#AEA492; margin:16px 0 6px; }
+  input { width:100%; box-sizing:border-box; font: 13px ui-monospace, monospace; color:#F4EFE7;
+          background:#221D17; border:1px solid #3A3227; border-radius:8px; padding:10px 12px; }
+  button { margin-top:18px; font:600 14px system-ui; color:#171310; background:#E8A33D;
+           border:none; border-radius:8px; padding:10px 18px; cursor:pointer; }
+  #status { margin-left:12px; font-size:13px; }
+  p.hint { color:#7C7263; font-size:12.5px; line-height:1.5; }
+  textarea { width:100%; box-sizing:border-box; font: 13px system-ui, sans-serif; color:#F4EFE7;
+             background:#221D17; border:1px solid #3A3227; border-radius:8px; padding:10px 12px; resize:vertical; }
+  label.check { display:flex; align-items:center; gap:10px; font-size:13.5px; font-weight:500; color:#F4EFE7; margin:14px 0 4px; }
+  label.check input { width:auto; margin:0; }
+  #chatStatus { margin-left:12px; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Fred extension options</h1>
+  <p class="hint">Both values live in Fred Notetaker → Settings → “Browser extension”. Paste them once.</p>
+  <label>Worker URL</label>
+  <input id="workerUrl" placeholder="https://fred.example.org">
+  <label>Capture token</label>
+  <input id="captureToken" placeholder="eyJ1aWQiOjEsImVtYWlsIjoi…">
+  <button id="save">Save</button><span id="status"></span>
+
+  <h1 style="margin-top:36px">Microphone</h1>
+  <p class="hint">Chrome can only show the microphone permission prompt on this page,
+  not while recording. Grant it once here so your own voice is captured; without it,
+  Fred records only the other participants (tab audio).</p>
+  <button id="grantMic">Grant microphone access</button><span id="micStatus"></span>
+
+  <h1 style="margin-top:36px">Meeting chat</h1>
+  <p class="hint">Unlike a bot, the extension is invisible to the other participants.
+  So when you start recording, Fred posts a notice in the meeting chat. Fred Notetaker
+  keeps a record of whether the notice went out, and the meeting's page warns you when
+  it did not.</p>
+  <label class="check"><input type="checkbox" id="noticeEnabled"> Post a recording notice in the meeting chat</label>
+  <label>Notice text</label>
+  <textarea id="noticeText" rows="3" maxlength="500"></textarea>
+  <p class="hint">Fred also saves the messages and links typed in the chat <strong>after</strong>
+  recording starts (Google Meet and Zoom; private messages are skipped, and Teams chat is not read).
+  The chat panel has to stay open for messages to be read.</p>
+  <label class="check"><input type="checkbox" id="chatCapture"> Save the meeting chat with the notes</label>
+  <button id="saveChat">Save chat settings</button><span id="chatStatus"></span>
+</div>
+<script src="options.js"></script>
+</body>
+</html>

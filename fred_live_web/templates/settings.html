@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% block title %}{{ t("Settings") }}{% endblock %}
+
+{% macro consent_notice() %}
+<div class="vp-consent">
+  <p class="settings-help"><strong>{{ t("What you are agreeing to.") }}</strong>
+  {{ t("Fred converts your recording into a numeric voice template used only to label your name in this team's meeting notes and to give you access to the meetings where your voice is recognized (their owners can turn that off). The raw audio is deleted immediately after processing; your voice cannot be reconstructed from the template. It stays on this server, is never shared with anyone, and is deleted the moment you click delete or leave the team. Declining or deleting has no consequence: meetings and notes keep working, you simply appear by your Meet name or as SPEAKER_N.") }} <span class="mono">({{ notice_version }})</span></p>
+</div>
+{% endmacro %}
+
+{% macro recorder_form(hint) %}
+<form class="vp-enroll-form" method="post" action="/settings/voiceprint" enctype="multipart/form-data">
+  <p class="settings-help">{{ hint }}</p>
+  <label class="welcome-label">{{ t("Name as it appears in Google Meet") }}</label>
+  <input class="ask-input" type="text" name="display_name" value="{{ user.name }}" required maxlength="80">
+  <div class="vp-rec-controls">
+    <button type="button" class="btn-secondary btn-s vp-rec-btn">{{ t("● Record") }}</button>
+    <span class="vp-rec-timer mono"></span>
+    <span class="settings-help" style="margin:0">{{ t("or upload:") }}</span>
+    <input type="file" name="audio_file" accept="audio/*,.mp3,.m4a,.wav,.webm,.ogg" class="vp-file">
+  </div>
+  <label class="vp-consent-check settings-help">
+    <input type="checkbox" name="consent" required>
+    {{ t("I have read the notice above and consent to the processing of my voice template.") }}
+  </label>
+  <div class="vp-submit-row">
+    <button class="btn-primary btn-s" type="submit">{{ t("Enroll") }}</button>
+    <span class="vp-status settings-help" style="margin:0"></span>
+  </div>
+</form>
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t("Settings") }}</h1>
+    <p class="page-sub">{{ user.email }}</p>
+  </div>
+</div>
+
+{% if just_connected %}
+<div class="notice notice-ok">{{ t("Calendar connected. Fred now joins your meetings automatically.") }}</div>
+{% endif %}
+{% if error == "no_refresh_token" %}
+<div class="notice">{{ t("Google didn’t issue a long-lived token. Try connecting again, and complete the consent screen fully.") }}</div>
+{% endif %}
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">Google Calendar</h2>
+  {% if calendar_account %}
+  <div class="settings-row">
+    <div>
+      <p class="settings-status"><span class="dot dot-ok"></span>{{ th("Connected as <strong>{account}</strong>", account=calendar_account) }}</p>
+      <p class="settings-help">{{ t("Fred watches this calendar, invites the notetaker to your Google Meet events and joins them automatically a moment before they start.") }}</p>
+    </div>
+    <form method="post" action="/settings/calendar/disconnect">
+      <button class="btn-secondary btn-s" type="submit">{{ t("Disconnect") }}</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="settings-row">
+    <div>
+      <p class="settings-status"><span class="dot"></span>{{ t("Not connected") }}</p>
+      <p class="settings-help">{{ t("Connect your Google Calendar so Fred can join your meetings automatically and take notes. You’ll be asked to allow access to your calendar events, which is all Fred needs.") }}</p>
+    </div>
+    <form method="post" action="/settings/calendar/connect">
+      <button class="btn-primary" type="submit" {% if not google_ready %}disabled title="{{ t('Google OAuth is not configured') }}"{% endif %}>
+        {{ t("Connect Google Calendar") }}
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Auto-join") }}</h2>
+  <p class="settings-status">{{ t("Which meetings Fred joins by itself.") }}</p>
+  <p class="settings-help">{{ t("“Meetings I organized or accepted” keeps Fred out of team invites you haven’t RSVP’d to. “Never” turns automatic joining off entirely: use the browser extension or invite the bot manually.") }}</p>
+  <form method="post" action="/settings/autojoin" class="lang-form-block">
+    <div class="lang-grid" role="radiogroup" aria-label="{{ t('Auto-join policy') }}">
+      {% for value, label in autojoin_policies.items() %}
+      <label class="lang-pill">
+        <input type="radio" name="autojoin_policy" value="{{ value }}" {{ "checked" if value == autojoin_policy }}>
+        {% if value == "accepted" %}<svg class="icon-s globe" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="m8.7 12.4 2.3 2.3 4.5-4.9"/></svg>
+        {% elif value == "all" %}<svg class="icon-s globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.9"/></svg>
+        {% else %}<svg class="icon-s globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M6.5 6.5l11 11"/></svg>{% endif %}
+        <span>{{ t(label) }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button class="btn-secondary btn-s" type="submit">{{ t("Save") }}</button>
+  </form>
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Interface language") }}</h2>
+  <p class="settings-status">{{ t("The language of Fred's own pages: menus, titles and buttons.") }}</p>
+  <p class="settings-help">{{ t("Meeting notes keep following the summary language below.") }}</p>
+  <form method="post" action="/settings/ui-language" class="lang-form-block">
+    <div class="lang-grid" role="radiogroup" aria-label="{{ t('Interface language') }}">
+      {% for value, label in ui_languages.items() %}
+      <label class="lang-pill">
+        <input type="radio" name="ui_language" value="{{ value }}" {{ "checked" if value == ui_language }}>
+        <span class="flag flag-{{ lang_flag(value) }}"></span>
+        <span>{{ label }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button class="btn-secondary btn-s" type="submit">{{ t("Save") }}</button>
+  </form>
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Summary language") }}</h2>
+  <p class="settings-status">{{ t("Meeting notes are written in this language.") }}</p>
+  <p class="settings-help">{{ t("“Same as the meeting” follows whatever language dominates each meeting; picking a fixed language translates every summary into it.") }}</p>
+  <form method="post" action="/settings/language" class="lang-form-block">
+    <div class="lang-grid" role="radiogroup" aria-label="{{ t('Summary language') }}">
+      {% for value, label in summary_languages.items() %}
+      <label class="lang-pill">
+        <input type="radio" name="summary_language" value="{{ value }}" {{ "checked" if value == summary_language }}>
+        {% if lang_flag(value) %}<span class="flag flag-{{ lang_flag(value) }}"></span>
+        {% else %}<svg class="icon-s globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg>{% endif %}
+        <span>{{ t(label) }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <button class="btn-secondary btn-s" type="submit">{{ t("Save") }}</button>
+  </form>
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Browser extension") }}</h2>
+  <p class="settings-status">{{ t("Record meetings without the bot, straight from your Meet tab.") }}</p>
+  {% if extension_store_url %}
+  <p class="settings-help">{{ th('<a href="{url}" target="_blank" rel="noopener"><strong>Install from the Chrome Web Store</strong></a> (updates arrive automatically), then paste this token and the worker URL into its options, just once. Manual install for development: <a href="/static/fred-extension.zip" download>zip</a>.', url=extension_store_url) }}</p>
+  {% else %}
+  <p class="settings-help">{{ th('<a href="/static/fred-extension.zip" download><strong>Download the extension (.zip)</strong></a>, unzip it, load it via <span class="mono">chrome://extensions</span> → Developer mode → “Load unpacked”, then paste this token and the worker URL into its options, just once.') }}</p>
+  {% endif %}
+  {% if capture_token %}
+  <div class="token-row">
+    <label class="welcome-label">{{ t("Capture token") }}</label>
+    <div class="token-line">
+      <input class="ask-input mono token-input" type="text" readonly value="{{ capture_token }}" onclick="this.select()">
+      <button class="btn-secondary btn-s" type="button" data-copy="{{ t('Copy') }}" data-copied="{{ t('Copied!') }}"
+              onclick="navigator.clipboard.writeText(this.previousElementSibling.value); this.textContent=this.dataset.copied; setTimeout(()=>this.textContent=this.dataset.copy,1500)">{{ t("Copy") }}</button>
+    </div>
+    <label class="welcome-label" style="margin-top:8px">{{ t("Worker URL") }}</label>
+    <div class="token-line">
+      <input class="ask-input mono token-input" type="text" readonly value="{{ worker_public_url }}" onclick="this.select()">
+    </div>
+  </div>
+  {% endif %}
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Voiceprint") }}</h2>
+  {% if voiceprint_enrolled_now %}
+  <div class="notice notice-ok">{{ t("Voiceprint enrolled. Fred can now name you in meeting notes by voice.") }}
+    {% if voiceprint_warning %} {{ voiceprint_warning }}{% endif %}</div>
+  {% endif %}
+
+  {% if my_print %}
+  <div class="settings-row">
+    <div>
+      <p class="settings-status"><span class="dot dot-ok"></span>{{ th("Enrolled as <strong>{name}</strong>", name=my_print.name) }}</p>
+      <p class="settings-help">{{ t("{n}s of audio on file, stored only as a numeric voice template on this server. Delete it anytime; deletion is immediate.", n=my_print.seconds|round(0)|int) }}</p>
+    </div>
+    <form method="post" action="/settings/voiceprint/delete"
+          onsubmit='return confirm({{ t("Delete your voiceprint? Fred will stop naming you by voice.")|tojson }})'>
+      <button class="btn-secondary btn-s" type="submit">{{ t("Delete my voiceprint") }}</button>
+    </form>
+  </div>
+  <details class="vp-details"><summary class="settings-help">{{ t("Re-record") }}</summary>
+    {{ recorder_form(t("Replace your voiceprint with a fresh recording.")) }}
+  </details>
+
+  {% elif voiceprint_pending %}
+  <div class="notice">{{ t("Your team leader invited you to enroll a voiceprint so meeting notes can name you automatically.") }}</div>
+  {{ consent_notice() }}
+  {{ recorder_form(t("Record about 45 seconds, or upload an audio file of you speaking alone.")) }}
+  <form method="post" action="/settings/voiceprint/decline" style="margin-top:10px">
+    <button class="btn-secondary btn-s" type="submit">{{ t("Decline (nothing changes for you)") }}</button>
+  </form>
+
+  {% else %}
+  <div class="settings-row">
+    <div>
+      <p class="settings-status"><span class="dot"></span>{{ t("No voiceprint") }}</p>
+      <p class="settings-help">{{ t("Optional: enroll your voice so Fred can name you in notes even when several people share one microphone.") }}</p>
+    </div>
+  </div>
+  <details class="vp-details"><summary class="settings-help">{{ t("Enroll now") }}</summary>
+    {{ consent_notice() }}
+    {{ recorder_form(t("Record about 45 seconds, or upload an audio file of you speaking alone.")) }}
+  </details>
+  {% endif %}
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Automatic sharing") }}</h2>
+  <form method="post" action="/settings/auto-share" class="settings-row">
+    <label class="check-line">
+      <input type="checkbox" name="auto_share" value="on" {{ "checked" if auto_share }}>
+      <span>
+        <span class="settings-status">{{ t("Share the meetings I record with the colleagues Fred recognizes in them") }}</span>
+        <span class="settings-help">{{ t("Read access (notes, transcript, Ask) for people with a Fred account whose enrolled voice Fred recognizes in the recording. Remove anyone from a meeting's Access panel and Fred will not add them back.") }}</span>
+      </span>
+    </label>
+    <button class="btn-secondary btn-s" type="submit">{{ t("Save") }}</button>
+  </form>
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Account") }}</h2>
+  <div class="settings-row">
+    <div>
+      <p class="settings-status">{{ th("Signed in as <strong>{name}</strong> ({email})", name=user.name, email=user.email) }}{% if user.is_admin %} <span class="pill pill-warn">admin</span>{% endif %}</p>
+      <p class="settings-help">{{ t("Access is managed by the instance administrator via the allowlist.") }}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+// In-browser voiceprint recorder: MediaRecorder -> webm blob -> multipart POST.
+// The file input is the no-mic alternative; whichever exists wins.
+const T = {{ {
+  "rerecord": t("● Re-record ({n}s captured)"),
+  "stop": t("■ Stop"),
+  "aim": t("(aim for 30-60s)"),
+  "nomic": t("Microphone unavailable: {error}. Use the file upload instead."),
+  "nothing": t("Record something or choose a file first."),
+  "processing": t("Processing (this can take ~20s the first time)..."),
+  "failed": t("Enrollment failed: {reason}"),
+}|tojson }};
+document.querySelectorAll(".vp-enroll-form").forEach((form) => {
+  const recBtn = form.querySelector(".vp-rec-btn");
+  const timerEl = form.querySelector(".vp-rec-timer");
+  const fileInput = form.querySelector(".vp-file");
+  const statusEl = form.querySelector(".vp-status");
+  let recorder = null, chunks = [], blob = null, timer = null, seconds = 0;
+
+  recBtn.addEventListener("click", async () => {
+    if (recorder && recorder.state === "recording") {
+      recorder.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      chunks = []; blob = null; seconds = 0;
+      recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
+      recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        clearInterval(timer);
+        blob = new Blob(chunks, { type: "audio/webm" });
+        recBtn.textContent = T.rerecord.replace("{n}", seconds);
+        recBtn.classList.remove("vp-recording");
+      };
+      recorder.start();
+      recBtn.textContent = T.stop;
+      recBtn.classList.add("vp-recording");
+      timer = setInterval(() => {
+        seconds += 1;
+        timerEl.textContent = seconds + "s" + (seconds < 20 ? " " + T.aim : "");
+      }, 1000);
+    } catch (err) {
+      statusEl.textContent = T.nomic.replace("{error}", err.name);
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const file = fileInput.files[0] || null;
+    if (!blob && !file) {
+      statusEl.textContent = T.nothing;
+      return;
+    }
+    const fd = new FormData();
+    fd.append("display_name", form.querySelector('[name="display_name"]').value);
+    fd.append("source", blob && !file ? "self-recorded" : "upload");
+    fd.append("audio", file || new File([blob], "voiceprint.webm", { type: "audio/webm" }));
+    statusEl.textContent = T.processing;
+    form.querySelector('[type="submit"]').disabled = true;
+    try {
+      const resp = await fetch("/settings/voiceprint", { method: "POST", body: fd });
+      if (resp.redirected) { window.location.href = resp.url; return; }
+      if (resp.ok) { window.location.href = "/settings?voiceprint=enrolled"; return; }
+      statusEl.textContent = T.failed.replace("{reason}", (await resp.text()).slice(0, 120));
+    } catch (err) {
+      statusEl.textContent = T.failed.replace("{reason}", err);
+    }
+    form.querySelector('[type="submit"]').disabled = false;
+  });
+});
+</script>
+{% endblock %}

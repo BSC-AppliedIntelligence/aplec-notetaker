@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% macro member_picker(selected) %}
+    <div class="chips-box" data-name="members" data-remove-label="{{ t('Remove') }}"
+         data-roster='{{ roster_emails|tojson }}' data-selected='{{ selected|tojson }}'>
+      <div class="chips-field">
+        <span class="chips-selected" style="display:contents"></span>
+        <input class="chips-input" type="text" placeholder="{{ t('Type an email…') }}" autocomplete="off">
+      </div>
+      <div class="chips-dd" hidden></div>
+      <span class="chips-hidden"></span>
+    </div>
+{% endmacro %}
+{% block title %}{{ t("Users") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t("Users") }}</h1>
+    <p class="page-sub">{{ t("Approve access requests and manage who can use this Fred") }}</p>
+  </div>
+</div>
+
+{% if error %}<div class="notice">{{ t(error) }}</div>{% endif %}
+
+{% if pending %}
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Waiting for approval") }}</h2>
+  <p class="settings-help">
+    {{ t("These people signed in with Google but aren't members yet. Approving runs the full onboarding (Vexa account, API key, webhook, roster) — their next sign-in just works. Rejecting deletes the request; they can re-request by signing in again.") }}
+  </p>
+  {% for row in pending %}
+  <div class="settings-row vp-row">
+    <div>
+      <p class="settings-status">
+        <span class="dot dot-warn"></span>
+        <strong>{{ row.email }}</strong>
+        {% if row.name %}<span class="lang-tag">{{ row.name }}</span>{% endif %}
+      </p>
+      {% set requested_on %}<time data-lt="datetime" datetime="{{ row.requested_at }}">{{ row.requested_at[:16].replace("T", " ") }} UTC</time>{% endset %}
+      <p class="settings-help">{{ th("Requested {date}", date=requested_on) }}</p>
+    </div>
+    <div class="vp-actions">
+      <form method="post" action="/admin/users/approve">
+        <input type="hidden" name="email" value="{{ row.email }}">
+        <button class="btn-primary btn-s" type="submit">{{ t("Approve") }}</button>
+      </form>
+      <form method="post" action="/admin/users/reject">
+        <input type="hidden" name="email" value="{{ row.email }}">
+        <button class="btn-secondary btn-s" type="submit">{{ t("Reject") }}</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Members") }}</h2>
+  <p class="settings-help">
+    {{ th('Removing someone revokes their session, capture token and calendar auto-join on the next request; their Vexa account and meeting history are kept. Members configured in <span class="mono">.env.worker</span> are managed there, not here.') }}
+  </p>
+  {% for row in members %}
+  <div class="settings-row vp-row">
+    <div>
+      <p class="settings-status">
+        <span class="dot dot-ok"></span>
+        <strong>{{ row.email }}</strong>
+        {% if row.is_admin %}<span class="lang-tag">admin</span>{% endif %}
+        {% if row.from_env %}<span class="lang-tag">env</span>{% endif %}
+      </p>
+      <p class="settings-help">{{ t("Vexa user {id}", id=row.vexa_user_id) }}</p>
+    </div>
+    {% if not row.from_env and not row.is_self %}
+    <form method="post" action="/admin/users/remove"
+          onsubmit='return confirm({{ t("Remove {email}? Their meetings are kept; access stops immediately.", email=row.email)|tojson }})'>
+      <input type="hidden" name="email" value="{{ row.email }}">
+      <button class="btn-secondary btn-s" type="submit">{{ t("Remove") }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Teams") }}</h2>
+  <p class="settings-help">
+    {{ th("Groups for sharing meetings. Sharing a meeting with a team adds its members <em>at that moment</em> (snapshot): people who join the team later do not see previously shared meetings. Saving a team with an existing name replaces its member list.") }}
+  </p>
+  {% for slug, team in teams.items() %}
+  <div class="settings-row vp-row">
+    <div style="flex:1">
+      <p class="settings-status"><span class="dot dot-ok"></span><strong>{{ team.name }}</strong>
+        <span class="lang-tag">{{ tn("{n} member", "{n} members", team.members|length) }}</span></p>
+      <p class="settings-help">{{ team.members|join(", ") or t("no members") }}</p>
+      <details style="margin-top:8px">
+        <summary class="settings-help" style="cursor:pointer">{{ t("Edit") }}</summary>
+        <form method="post" action="/admin/teams/save" style="margin-top:10px">
+          <input type="hidden" name="original_slug" value="{{ slug }}">
+          <div class="token-line" style="margin-bottom:8px">
+            <input class="ask-input" type="text" name="name" value="{{ team.name }}" required maxlength="60">
+            <button class="btn-primary btn-s" type="submit">{{ t("Save") }}</button>
+          </div>
+          {{ member_picker(team.members) }}
+        </form>
+      </details>
+    </div>
+    <form method="post" action="/admin/teams/delete"
+          onsubmit='return confirm({{ t("Delete team {name}? Existing shares stay (they are per-person).", name=team.name)|tojson }})'>
+      <input type="hidden" name="slug" value="{{ slug }}">
+      <button class="btn-secondary btn-s" type="submit">{{ t("Delete") }}</button>
+    </form>
+  </div>
+  {% endfor %}
+  <form method="post" action="/admin/teams/save" style="margin-top:14px">
+    <div class="token-line" style="margin-bottom:8px">
+      <input class="ask-input" type="text" name="name" placeholder="{{ t('New team name') }}" required maxlength="60">
+      <button class="btn-primary btn-s" type="submit">{{ t("Save team") }}</button>
+    </div>
+    {{ member_picker([]) }}
+  </form>
+  <script src="/static/chips.js"></script>
+</section>
+{% endblock %}
+

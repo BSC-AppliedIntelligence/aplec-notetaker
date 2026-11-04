@@ -1,0 +1,76 @@
+# Fred, fully containerized: worker + LLM + web (docs/INSTALL.md, section 9).
+#
+# The native install in docs/INSTALL.md is the tested path. Bring-up:
+#
+#   docker build -t fred-live-worker -f Dockerfile.worker .
+#   docker build -t fred-live-web    -f Dockerfile.web    .
+#   ./scripts/download_models.sh --llm      # once, on the host
+#   docker compose -f docker-compose.gpu.yml up -d
+#
+# Vexa (the bot capture path) is NOT here: it has its own compose project under
+# vendor/vexa. Skip it entirely if you only use the Chrome extension.
+services:
+  llama:
+    # Upstream image: no reason to build or vendor llama.cpp ourselves. Pin a
+    # tag rather than :server-cuda so an upstream push cannot change the engine
+    # under a running deployment.
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    command: >
+      -m /models/unsloth__Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q6_K.gguf
+      -md /models/unsloth__Qwen3.8-27B-GGUF/MTP/mtp-Qwen3.8-27B-Q4_0.gguf
+      --spec-type draft-mtp --spec-draft-n-max 4
+      --host 0.0.0.0 --port 18081 --alias qwen3.8-27b
+      -c ${FRED_LIVE_LLAMACPP_CTX_SIZE:-65536} --parallel 1 --n-gpu-layers 999
+    volumes:
+      - ./models:/models:ro
+    environment:
+      GGML_CUDA_ENABLE_UNIFIED_MEMORY: "1"
+    networks: [fred]
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: all, capabilities: [gpu]}]
+
+  worker:
+    image: fred-live-worker:latest
+    env_file: [.env.worker]
+    environment:
+      # Inside the compose network the LLM is a service name, not loopback.
+      FRED_LIVE_LLM_BASE_URL: "http://llama:18081/v1"
+      FRED_LIVE_APP_PORT: "18088"
+    volumes:
+      - ./models:/app/models:ro
+      - ./data:/app/data
+      - ./recordings:/app/recordings
+      # Retention deletes Vexa recordings (uid 999) through `docker exec`.
+      # Drop this mount if you do not run the bot path; retention then no-ops.
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # Vexa's webhook and the browser extension both reach the worker here.
+      - "${FRED_LIVE_WORKER_PORT:-18088}:18088"
+    networks: [fred]
+    restart: unless-stopped
+    depends_on: [llama]
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: all, capabilities: [gpu]}]
+
+  web:
+    image: fred-live-web:latest
+    env_file: [.env.worker]
+    environment:
+      FRED_LIVE_WORKER_URL: "http://worker:18088"
+      FRED_LIVE_WEB_HOST: "0.0.0.0"
+    volumes:
+      - ./.env.worker:/app/.env.worker:ro
+      - ./data:/app/data
+    ports:
+      - "${FRED_LIVE_WEB_PORT:-18091}:18091"
+    networks: [fred]
+    restart: unless-stopped
+    depends_on: [worker]
+
+networks:
+  fred:

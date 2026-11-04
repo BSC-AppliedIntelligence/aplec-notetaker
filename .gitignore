@@ -1,0 +1,26 @@
+.DS_Store
+node_modules/
+dist/
+.env
+*.log
+
+# local dev
+__pycache__/
+.venv/
+.venv-nemotron/
+
+# vendored code is tracked via git submodule
+vendor/vexa
+vendor/llama.cpp
+vendor/whisper.cpp
+
+# local runtime artifacts (data/ holds meeting transcripts/audio — never commit)
+models/
+recordings/
+data/
+.env.worker
+
+# Built by scripts/package_extension.sh for each deployment
+fred_live_web/static/fred-extension.zip
+fred_live_web/static/fred-extension-store.zip
+fred_live_web/static/fred-extension-version.json

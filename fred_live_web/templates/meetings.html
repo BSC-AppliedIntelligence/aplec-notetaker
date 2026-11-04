@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% from "partials/platform_icon.html" import platform_icon %}
+{% block title %}{{ t("Meetings") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t("Meetings") }}</h1>
+    <p class="page-sub">{% if q %}{{ tn("{n} meeting matching “{q}”", "{n} meetings matching “{q}”", total, q=q) }}{% else %}{{ tn("{n} meeting", "{n} meetings", total) }}{% endif %}</p>
+  </div>
+  <div class="search-wrap">
+    <svg class="icon-s search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.8-3.8"/></svg>
+    <input id="search-box" class="search-input" type="search" name="q" value="{{ q }}"
+           placeholder="{{ t('Search meetings…') }}" autocomplete="off"
+           hx-get="/" hx-trigger="input changed delay:300ms, search"
+           hx-target="#meetings-content" hx-select="#meetings-content" hx-swap="outerHTML"
+           hx-push-url="true">
+  </div>
+</div>
+
+{% if just_connected %}
+<div class="notice notice-ok">{{ t("Calendar connected. Fred will join your upcoming Google Meet events automatically and their notes will appear here.") }}</div>
+{% elif not calendar_account %}
+<div class="notice connect-banner">
+  <div>
+    {{ th("<strong>Connect your Google Calendar</strong> so Fred can join your meetings automatically and take notes.") }}
+  </div>
+  <form method="post" action="/settings/calendar/connect">
+    <button class="btn-primary btn-s" type="submit">{{ t("Connect calendar") }}</button>
+  </form>
+</div>
+{% endif %}
+
+<div id="meetings-content"
+     {% if any_processing %}
+     hx-get="/" hx-trigger="every 12s" hx-include="#search-box, #platform-input"
+     hx-select="#meetings-content" hx-swap="outerHTML"
+     {% endif %}>
+
+<input type="hidden" id="platform-input" name="platform" value="{{ platform }}">
+
+{% if platform_counts | length > 0 %}
+<div class="filter-row" role="group" aria-label="{{ t('Filter by platform') }}">
+  <button type="button" class="chip filter-chip {{ 'chip-active' if not platform }}"
+          hx-get="/" hx-vals='{"platform": ""}' hx-include="#search-box"
+          hx-target="#meetings-content" hx-select="#meetings-content" hx-swap="outerHTML" hx-push-url="true">
+    {{ t("All") }} <span class="chip-count">{{ all_count }}</span>
+  </button>
+  {% for p, count in platform_counts.items() | sort %}
+  <button type="button" class="chip filter-chip {{ 'chip-active' if platform == p }}"
+          hx-get="/" hx-vals='{"platform": "{{ p }}"}' hx-include="#search-box"
+          hx-target="#meetings-content" hx-select="#meetings-content" hx-swap="outerHTML" hx-push-url="true">
+    {{ platform_icon(p, 15) }} {{ platform_labels.get(p, p) }} <span class="chip-count">{{ count }}</span>
+  </button>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if not groups %}
+<div class="empty">
+  {% if q or platform %}
+  <h2>{{ t("No matches") }}</h2>
+  <p>{% if q and platform %}{{ t("No meetings match “{q}” on {platform}.", q=q, platform=platform_labels.get(platform, platform)) }}{% elif q %}{{ t("No meetings match “{q}”.", q=q) }}{% else %}{{ t("No meetings on {platform}.", platform=platform_labels.get(platform, platform)) }}{% endif %} {{ t("Try clearing the filter.") }}</p>
+  {% else %}
+  <svg viewBox="0 0 120 90" class="empty-art" aria-hidden="true">
+    <rect x="14" y="18" width="92" height="60" rx="10" fill="none" stroke="currentColor" stroke-width="2.4" opacity=".35"/>
+    <path d="M34 40h36M34 50h52M34 60h44" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
+    <circle cx="88" cy="24" r="14" fill="var(--accent)" opacity=".92"/>
+    <path d="M83 24.5c1.6-.8 2.4-3.4 2.8-6M85.6 18.4c3.4-.4 5.2-.4 7.8 0" stroke="#171310" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  </svg>
+  <h2>{{ t("No meetings yet") }}</h2>
+  <p>{{ t("Fred joins your Google Calendar meetings automatically and the notes appear here minutes after the call ends.") }}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% for group in groups %}
+<section class="day-group">
+  <h2 class="day-label">{{ group.day or t("Undated") }}</h2>
+  {% for card in group.cards %}
+
+  {% if card.status == "processing" %}
+  <div class="meeting-card card-processing" data-start="{{ iso_utc(card.start_time) }}">
+    <div class="card-top">
+      <h3 class="card-title">{{ platform_icon(card.platform) }}{{ card.title }}</h3>
+      <div class="card-badges">{% if card.meeting_id in shared_ids %}<span class="pill pill-muted">{{ t("Shared") }}</span>{% endif %}<span class="pill pill-processing"><span class="spinner"></span>{{ t("Processing") }}</span></div>
+    </div>
+    <div class="card-meta">
+      <span class="meta-item"><time data-lt="time" datetime="{{ iso_utc(card.start_time) }}">{{ fmt_time(card.start_time) }}</time>{% if card.duration_label %} · {{ card.duration_label }}{% endif %}</span>
+      {% if card.meet_code %}<span class="meta-item mono">{{ card.meet_code }}</span>{% endif %}
+    </div>
+    <p class="card-summary muted">{{ t("Fred is transcribing and summarizing this meeting. It appears here automatically.") }}</p>
+    <div class="shimmer-lines"><span></span><span style="width: 72%"></span></div>
+  </div>
+
+  {% elif card.status == "failed" %}
+  <div class="meeting-card card-failed" data-start="{{ iso_utc(card.start_time) }}">
+    <div class="card-top">
+      <h3 class="card-title">{{ platform_icon(card.platform) }}{{ card.title }}</h3>
+      <div class="card-badges">{% if card.meeting_id in shared_ids %}<span class="pill pill-muted">{{ t("Shared") }}</span>{% endif %}<span class="pill pill-failed">{{ t("Failed") }}</span></div>
+    </div>
+    <div class="card-meta">
+      <span class="meta-item"><time data-lt="time" datetime="{{ iso_utc(card.start_time) }}">{{ fmt_time(card.start_time) }}</time>{% if card.duration_label %} · {{ card.duration_label }}{% endif %}</span>
+      {% if card.meet_code %}<span class="meta-item mono">{{ card.meet_code }}</span>{% endif %}
+    </div>
+    {% if card.error_message %}<p class="card-error mono">{{ card.error_message }}</p>{% endif %}
+    <div class="card-actions">
+      {% if card.meeting_id not in shared_ids %}
+      <button class="btn-secondary btn-s"
+              hx-post="/meetings/{{ card.meeting_id }}/reprocess"
+              hx-target="#meetings-content" hx-select="#meetings-content" hx-swap="outerHTML"
+              hx-disabled-elt="this">
+        <svg class="icon-s" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>
+        {{ t("Reprocess") }}
+      </button>
+      {% endif %}
+      {% if card.has_result %}<a class="ghost-btn" href="/meetings/{{ card.meeting_id }}">{{ t("View last good result") }}</a>{% endif %}
+    </div>
+  </div>
+
+  {% else %}
+  <a class="meeting-card" href="/meetings/{{ card.meeting_id }}" data-start="{{ iso_utc(card.start_time) }}">
+    <div class="card-top">
+      <h3 class="card-title">{{ platform_icon(card.platform) }}{{ card.title }}</h3>
+      <div class="card-badges">
+        {% if card.meeting_id in shared_ids %}<span class="pill pill-muted">{{ t("Shared") }}</span>{% endif %}
+        {% for lang in card.languages %}<span class="pill pill-lang" title="{{ t(lang_name(lang)) }}">{% if lang_flag(lang) %}<span class="flag flag-{{ lang_flag(lang) }}"></span> {% endif %}{{ lang_label(lang) }}</span>{% endfor %}
+        {% set q2 = quality_labels.get(card.quality, (card.quality, "muted")) %}
+        <span class="pill pill-{{ q2[1] }}">{{ t(q2[0]) }}</span>
+      </div>
+    </div>
+    <div class="card-meta">
+      <span class="meta-item">
+        <svg class="icon-s" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.9"/></svg>
+        <time data-lt="time" datetime="{{ iso_utc(card.start_time) }}">{{ fmt_time(card.start_time) }}</time>{% if card.duration_label %} · {{ card.duration_label }}{% endif %}
+      </span>
+      {% if card.meet_code %}<span class="meta-item mono">{{ card.meet_code }}</span>{% endif %}
+    </div>
+    {% if card.speakers %}
+    <div class="card-speakers">
+      <span class="avatar-stack">
+        {% for s in card.speakers[:4] %}
+        <span class="avatar avatar-s" style="--hue: {{ speaker_hue(s) }}" title="{{ s }}">{{ initials(s) }}</span>
+        {% endfor %}
+      </span>
+      <span class="speaker-names">{{ card.speakers[:3] | join(", ") }}{% if card.speakers | length > 3 %} +{{ card.speakers | length - 3 }}{% endif %}</span>
+    </div>
+    {% endif %}
+    {% if card.summary %}<p class="card-summary">{{ card.summary }}</p>{% endif %}
+  </a>
+  {% endif %}
+
+  {% endfor %}
+</section>
+{% endfor %}
+</div>
+{% endblock %}

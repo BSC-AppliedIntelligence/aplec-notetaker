@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ t("Access requested") }}{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+<div class="login-wrap">
+  <div class="login-card">
+    <h1>{{ t("Request sent") }}</h1>
+    <p class="login-sub">
+      {{ th("<strong>{email}</strong> is now waiting for approval.", email=email) }}
+      {{ t("An administrator has to let you in once; after that, signing in just works.") }}
+      {{ t("Give them a nudge if you're in a hurry.") }}
+    </p>
+    <a class="btn-secondary" href="/login">{{ t("Sign in again") }}</a>
+  </div>
+</div>
+{% endblock %}

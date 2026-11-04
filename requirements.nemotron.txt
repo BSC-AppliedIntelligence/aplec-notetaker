@@ -1,0 +1,8 @@
+# Second diarizer (FRED_LIVE_DIARIZATION_NEMOTRON), in its own environment:
+# Nemotron 3 Diarization needs transformers 5 and requirements.worker.txt holds
+# transformers below 5. scripts/setup_nemotron.sh installs this and reuses the
+# worker's torch and accelerate instead of a second copy. Versions as tested.
+transformers==5.22.1
+librosa==1.0.0
+soundfile==0.14.0
+soxr==1.1.0

@@ -1,0 +1,129 @@
+# fred-live worker, containerized (GPU).
+#
+# The heavy half of the system: whisper.cpp ASR, pyannote diarization and
+# ReDimNet voiceprints, all on CUDA. The web app has its own (CPU-only) image;
+# llama.cpp uses the upstream ghcr.io/ggml-org/llama.cpp:server-cuda image, so
+# nothing here builds or ships an LLM.
+#
+# Two things deliberately stay OUTSIDE the image:
+#   * model weights (~80GB) — mounted at /app/models;
+#   * meeting data and recordings — mounted, because they are the product.
+#
+# Build (ARM64 host; the CUDA compile dominates, ~20 min the first time):
+#   docker build -t fred-live-worker -f Dockerfile.worker .
+
+ARG CUDA_VERSION=13.0.0
+ARG UBUNTU=ubuntu24.04
+
+# ---- stage 1: compile whisper.cpp with CUDA ---------------------------------
+# No official whisper.cpp image exists for arm64 (the published one is
+# amd64-only), so it is built here once and only the binary is carried over.
+FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-devel-${UBUNTU} AS whisper-builder
+
+# Pinned, not "master": the build must be reproducible, and a two-months-newer
+# ggml broke CUDA init on this GPU (bare "CUDA error" at ggml-cuda.cu:108 while
+# torch on the same device worked). This is the commit validated on the host.
+ARG WHISPER_REF=6fc7c33b4c3a2cec83e4b65abd5e96a890480375
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential cmake git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+RUN git init -q . \
+    && git remote add origin https://github.com/ggml-org/whisper.cpp \
+    && git fetch -q --depth 1 origin "${WHISPER_REF}" \
+    && git checkout -q FETCH_HEAD
+# "native" targets the building host's GPU. For an image that must run on other
+# GPUs, pass --build-arg CUDA_ARCH=121 (GB10/Blackwell), 90 (Hopper), etc.
+# NOT "native": docker build has no GPU, so autodetection silently produces code
+# for the wrong architecture and the binary dies at runtime with a bare
+# "CUDA error" in ggml-cuda.cu. Set it explicitly. 121 = GB10/Blackwell (the
+# reference host); use 90 for Hopper, 89 for Ada, 86 for Ampere, or a
+# semicolon-separated list for a portable image at the cost of build time.
+ARG CUDA_ARCH=121
+# libcuda.so is the DRIVER library: it lives on the host, not in the image, so
+# the link fails on `undefined reference to cuGetErrorString` unless pointed at
+# the stub NVIDIA ships for exactly this purpose. On ARM64 it is under
+# targets/sbsa-linux, not the x86 lib64. The symlink makes plain -lcuda
+# resolve; the explicit flag makes the SHARED library (libggml-cuda.so) request
+# it, which is where the undefined symbol actually lives. At runtime the real
+# driver is injected by the NVIDIA container runtime, never this stub.
+# Static link (BUILD_SHARED_LIBS=OFF): whisper.cpp otherwise emits libwhisper.so
+# and libggml*.so next to the binary, and copying just the executable into the
+# runtime stage gives 'libwhisper.so.1: cannot open shared object file'. One
+# self-contained binary is the right shape for a container anyway.
+ARG CUDA_STUBS=/usr/local/cuda/targets/sbsa-linux/lib/stubs
+# whisper-batch (tools/whisper-batch) keeps the model loaded across a meeting's
+# span calls; it is built as one more whisper.cpp example, so it links the same
+# (static) libraries as whisper-cli and gives the same output. The patch adds the
+# second language tag to libwhisper; it is a no-op for whisper-cli.
+COPY tools/whisper-batch examples/whisper-batch
+COPY patches/whisper-cpp-second-language.patch /tmp/
+RUN git apply /tmp/whisper-cpp-second-language.patch \
+    && echo 'add_subdirectory(whisper-batch)' >> examples/CMakeLists.txt \
+    && ln -sf "${CUDA_STUBS}/libcuda.so" /usr/lib/aarch64-linux-gnu/libcuda.so \
+    && cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCH}" \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_SHARED_LINKER_FLAGS="-L${CUDA_STUBS} -lcuda" \
+        -DCMAKE_EXE_LINKER_FLAGS="-L${CUDA_STUBS} -lcuda" \
+    && cmake --build build --target whisper-cli whisper-batch -j"$(nproc)"
+
+# ---- stage 2: build the Python environment ----------------------------------
+# Separate stage because two dependencies need a compiler: wespeaker installs
+# from git (it is not on PyPI) and pulls hdbscan, which needs Python.h. Doing
+# this here keeps gcc and the headers out of the runtime image.
+FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-devel-${UBUNTU} AS python-builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-dev python3-venv build-essential git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/venv PATH=/opt/venv/bin:$PATH
+RUN python3 -m venv "$VIRTUAL_ENV" && pip install --no-cache-dir --upgrade pip
+
+# The lock is the environment validated on the host (torch 2.11 + CUDA 13 from
+# plain PyPI: the aarch64 wheels are CUDA-enabled, no extra index needed).
+# The loose requirements.worker.txt stays for development.
+COPY requirements.worker.lock.txt .
+RUN pip install --no-cache-dir -r requirements.worker.lock.txt \
+    && pip uninstall -y torchcodec 2>/dev/null || true
+
+# ---- stage 3: runtime -------------------------------------------------------
+FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-runtime-${UBUNTU}
+
+# ffmpeg here is not a convenience: it is what lets torchcodec stay uninstalled.
+# transformers imports torchcodec unconditionally when present, and it needs
+# FFmpeg shared libs a bare host may lack. In a container
+# we simply have real ffmpeg, and audio decoding is boring again.
+ARG DOCKER_CLI_VERSION=27.5.1
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 ffmpeg ca-certificates curl \
+    && curl -fsSL "https://download.docker.com/linux/static/stable/aarch64/docker-${DOCKER_CLI_VERSION}.tgz" \
+       | tar -xz -C /usr/local/bin --strip-components=1 docker/docker \
+    && apt-get purge -y curl && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=python-builder /opt/venv /opt/venv
+COPY --from=whisper-builder /src/build/bin/whisper-cli /usr/local/bin/whisper-cli
+# Found next to whisper-cli (FRED_LIVE_WHISPERCPP_BATCH_BIN overrides).
+COPY --from=whisper-builder /src/build/bin/whisper-batch /usr/local/bin/whisper-batch
+
+WORKDIR /app
+ENV VIRTUAL_ENV=/opt/venv PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1
+COPY fred_live_worker/ fred_live_worker/
+COPY scripts/ scripts/
+
+# Config defaults resolve relative to the checkout (fred_live_worker/config.py),
+# which inside the image is /app: mount models/, data/ and recordings/ there.
+# The docker CLI above is for retention, which deletes Vexa recordings (uid 999)
+# via `docker exec`; mount /var/run/docker.sock to enable it.
+ENV FRED_LIVE_WHISPERCPP_BIN=/usr/local/bin/whisper-cli \
+    FRED_LIVE_APP_HOST=0.0.0.0 \
+    FRED_LIVE_APP_PORT=18088
+EXPOSE 18088
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s \
+  CMD python3 -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:18088/healthz').status==200 else 1)"
+
+CMD ["uvicorn", "fred_live_worker.main:app", "--host", "0.0.0.0", "--port", "18088"]

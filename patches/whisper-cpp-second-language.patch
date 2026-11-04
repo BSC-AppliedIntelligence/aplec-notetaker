@@ -1,0 +1,51 @@
+diff --git a/include/whisper.h b/include/whisper.h
+index 545084e..b1cfebe 100644
+--- a/include/whisper.h
++++ b/include/whisper.h
+@@ -636,6 +636,13 @@ extern "C" {
+     // Language id associated with the provided state
+     WHISPER_API int whisper_full_lang_id_from_state(struct whisper_state * state);
+ 
++    // Second language tag in this state's decoder prompt, right after the tag of
++    // params.language: <|sot|><|ca|><|es|><|transcribe|>. Whisper was not trained on
++    // this: the first tag leads, and the second keeps the decoder from translating
++    // into the first what was said in the second. -1 removes it (the default).
++    #define WHISPER_HAS_SECOND_LANGUAGE 1
++    WHISPER_API void whisper_state_set_second_language(struct whisper_state * state, int lang_id);
++
+     // Get the start and end time of the specified segment
+     WHISPER_API int64_t whisper_full_get_segment_t0           (struct whisper_context * ctx, int i_segment);
+     WHISPER_API int64_t whisper_full_get_segment_t0_from_state(struct whisper_state * state, int i_segment);
+diff --git a/src/whisper.cpp b/src/whisper.cpp
+index 2a95bdb..feafffe 100644
+--- a/src/whisper.cpp
++++ b/src/whisper.cpp
+@@ -892,6 +892,7 @@ struct whisper_state {
+     std::vector<whisper_token>   prompt_past1; // dynamic context from decoded output
+ 
+     int lang_id = 0; // english by default
++    int second_lang_id = -1; // whisper_state_set_second_language
+ 
+     std::string path_model; // populated by whisper_init_from_file_with_params()
+ 
+@@ -6978,6 +6979,9 @@ int whisper_full_with_state(
+         const int lang_id = whisper_lang_id(params.language);
+         state->lang_id = lang_id;
+         prompt_init.push_back(whisper_token_lang(ctx, lang_id));
++        if (state->second_lang_id >= 0) {
++            prompt_init.push_back(whisper_token_lang(ctx, state->second_lang_id));
++        }
+         if (params.translate) {
+             prompt_init.push_back(whisper_token_translate(ctx));
+         } else {
+@@ -7934,6 +7938,10 @@ int whisper_full_lang_id_from_state(struct whisper_state * state) {
+     return state->lang_id;
+ }
+ 
++void whisper_state_set_second_language(struct whisper_state * state, int lang_id) {
++    state->second_lang_id = lang_id;
++}
++
+ int whisper_full_lang_id(struct whisper_context * ctx) {
+     return ctx->state->lang_id;
+ }

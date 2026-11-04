@@ -1,0 +1,392 @@
+diff --git a/deploy/compose/docker-compose.yml b/deploy/compose/docker-compose.yml
+index 4bd681e7..4be7310d 100644
+--- a/deploy/compose/docker-compose.yml
++++ b/deploy/compose/docker-compose.yml
+@@ -101,6 +101,9 @@ services:
+       - ADMIN_API_TOKEN=${ADMIN_TOKEN:-changeme}
+       - INTERNAL_API_SECRET=${INTERNAL_API_SECRET:-vexa-internal-secret}
+       - LOG_LEVEL=${LOG_LEVEL:-INFO}
++      # fred-live patch: admin-api validates PUT /user/webhook via the shared
++      # meeting_api.webhook_url module; allow the on-host worker hostname.
++      - WEBHOOK_ALLOWED_HOSTS=${WEBHOOK_ALLOWED_HOSTS:-}
+     healthcheck:
+       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/')"]
+       interval: 30s
+@@ -276,6 +279,12 @@ services:
+       - POST_MEETING_HOOKS=${POST_MEETING_HOOKS:-}
+       - TRANSCRIPTION_COLLECTOR_URL=http://meeting-api:8080
+       - STORAGE_BACKEND=${STORAGE_BACKEND:-minio}
++      # fred-live patch: compose omits these, so .env LOCAL_STORAGE_* never reached
++      # the container and local storage silently wrote to /tmp/vexa-recordings.
++      - LOCAL_STORAGE_DIR=${LOCAL_STORAGE_DIR:-/tmp/vexa-recordings}
++      - LOCAL_STORAGE_FSYNC=${LOCAL_STORAGE_FSYNC:-true}
++      # fred-live patch: allow webhooks to the on-host worker (SSRF allowlist).
++      - WEBHOOK_ALLOWED_HOSTS=${WEBHOOK_ALLOWED_HOSTS:-}
+       - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-vexa-access-key}
+       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-vexa-secret-key}
+@@ -299,6 +308,10 @@ services:
+     volumes:
+       - ${LOCAL_STORAGE_VOLUME_SOURCE:-recordings-data}:/data/recordings
+     init: true
++    # fred-live patch: meeting-api sends the per-user webhook to the worker
++    # running natively on the host (host.docker.internal:18088).
++    extra_hosts:
++      - "host.docker.internal:host-gateway"
+     depends_on:
+       - redis
+       - postgres
+diff --git a/services/api-gateway/Dockerfile b/services/api-gateway/Dockerfile
+index 07ee2164..f546c69d 100644
+--- a/services/api-gateway/Dockerfile
++++ b/services/api-gateway/Dockerfile
+@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir /app/services/meeting-api
+ # Copy application code and requirements
+ COPY ./services/api-gateway/requirements.txt /app/
+ COPY ./services/api-gateway/main.py /app/
++# fred-live patch: main.py imports guard_config at runtime but it was never copied
++# into the image (local builds crashloop with ModuleNotFoundError).
++COPY ./services/api-gateway/guard_config.py /app/
+ 
+ # Install dependencies
+ RUN pip install --no-cache-dir -r requirements.txt
+diff --git a/services/meeting-api/meeting_api/webhook_url.py b/services/meeting-api/meeting_api/webhook_url.py
+index edc5bbcd..8f5125bc 100644
+--- a/services/meeting-api/meeting_api/webhook_url.py
++++ b/services/meeting-api/meeting_api/webhook_url.py
+@@ -7,9 +7,21 @@ Reference: OWASP SSRF Prevention Cheat Sheet
+ """
+ 
+ import ipaddress
++import os
+ import socket
+ from urllib.parse import urlparse
+ 
++# fred-live patch: operator-controlled allowlist for on-host webhook consumers.
++# Self-hosted deployments legitimately deliver webhooks to the docker host
++# (host.docker.internal -> host-gateway, a private IP the OWASP blocklist would
++# reject). Hostnames listed here bypass the SSRF checks entirely; keep the list
++# tight and operator-owned (env, not user input).
++_ALLOWED_HOSTNAMES = {
++    h.strip().lower()
++    for h in os.environ.get("WEBHOOK_ALLOWED_HOSTS", "").split(",")
++    if h.strip()
++}
++
+ 
+ # Blocked IP ranges per OWASP (localhost, private, link-local, multicast)
+ _BLOCKED_IPV4_NETWORKS = [
+@@ -107,6 +119,10 @@ def validate_webhook_url(url: str) -> str:
+     if not hostname:
+         raise ValueError("Webhook URL must have a valid hostname")
+ 
++    # fred-live patch: operator allowlist wins before any blocklist/DNS checks.
++    if hostname.lower() in _ALLOWED_HOSTNAMES:
++        return url
++
+     # Hostname blocklist (before DNS to catch internal names)
+     if _is_blocked_hostname(hostname):
+         raise ValueError(
+diff --git a/services/vexa-bot/Dockerfile b/services/vexa-bot/Dockerfile
+index ff3fa9cd..6bc7573d 100644
+--- a/services/vexa-bot/Dockerfile
++++ b/services/vexa-bot/Dockerfile
+@@ -1,7 +1,7 @@
+ # ==============================================================================
+ # Stage 1: Build native addon (Zoom SDK wrapper)
+ # ==============================================================================
+-FROM --platform=linux/amd64 node:20-bullseye AS native-builder
++FROM node:20-bullseye AS native-builder
+ 
+ # Install build dependencies
+ RUN apt-get update && apt-get install -y \
+diff --git a/services/vexa-bot/core/src/browser-profile.ts b/services/vexa-bot/core/src/browser-profile.ts
+index 1fca0110..8cf239be 100644
+--- a/services/vexa-bot/core/src/browser-profile.ts
++++ b/services/vexa-bot/core/src/browser-profile.ts
+@@ -15,6 +15,9 @@ export const AUTH_ESSENTIAL_FILES = [
+   'Default/Login Data For Account-journal',
+   'Default/Network Persistent State',
+   'Default/Web Data',
++  // fred-live patch: CDP-exported full cookie jar (incl. Google session cookies
++  // that Chromium never writes to Default/Cookies). See cdp-cookies.ts.
++  'Default/cdp-cookies.json',
+ ];
+ 
+ export const AUTH_ESSENTIAL_DIRS = [
+diff --git a/services/vexa-bot/core/src/browser-session.ts b/services/vexa-bot/core/src/browser-session.ts
+index d2ebdd47..8ec34ea7 100644
+--- a/services/vexa-bot/core/src/browser-session.ts
++++ b/services/vexa-bot/core/src/browser-session.ts
+@@ -9,6 +9,11 @@ import { TTSPlaybackService } from './services/tts-playback';
+ import { MeetingChatService } from './services/chat';
+ import { s3Sync, syncBrowserDataFromS3, syncBrowserDataToS3, cleanStaleLocks, BROWSER_DATA_DIR, BROWSER_CACHE_EXCLUDES } from './s3-sync';
+ import { verifyCookieServiceContract, downloadCookiesFromHttp, uploadCookiesToHttp } from './cookie-http';
++import { exportCdpCookies } from './cdp-cookies';
++
++// fred-live patch: live context so saveBrowserData can dump the full cookie jar
++// (incl. Google session cookies) before each S3/HTTP save.
++let activeSessionContext: import('playwright').BrowserContext | null = null;
+ 
+ const WORKSPACE_DIR = '/workspace';
+ 
+@@ -100,6 +105,15 @@ function syncWorkspaceUp(config: BrowserSessionConfig): void {
+ 
+ async function saveBrowserData(config: BrowserSessionConfig): Promise<{ success: boolean; error?: string }> {
+   try {
++    // fred-live patch: capture session cookies to disk before the profile is synced.
++    if (activeSessionContext) {
++      try {
++        const n = await exportCdpCookies(activeSessionContext);
++        console.log(`[browser-session] Exported ${n} cookies via CDP (incl. session cookies)`);
++      } catch (e: any) {
++        console.error(`[browser-session] CDP cookie export failed: ${e?.message}`);
++      }
++    }
+     if (config.cookieStorageBackend === 'http' && config.cookieServiceUrl) {
+       await uploadCookiesToHttp({
+         cookieServiceUrl: config.cookieServiceUrl,
+@@ -165,6 +179,8 @@ export async function runBrowserSession(config: BrowserSessionConfig): Promise<v
+     viewport: null,
+   });
+ 
++  activeSessionContext = context;  // fred-live patch: expose for cookie export on save
++
+   // Get or create a page
+   const pages = context.pages();
+   const page = pages.length > 0 ? pages[0] : await context.newPage();
+diff --git a/services/vexa-bot/core/src/index.ts b/services/vexa-bot/core/src/index.ts
+index 59b28be3..95a7583c 100644
+--- a/services/vexa-bot/core/src/index.ts
++++ b/services/vexa-bot/core/src/index.ts
+@@ -64,6 +64,13 @@ let activeVideoRecordingService: VideoRecordingService | null = null;
+ // v0.10.5.3 Pack T — module-level holder so performGracefulLeave can read
+ // the resource summary at exit time and stop the sampler.
+ let currentBotResourceSampler: ReturnType<typeof startBotResourceSampler> | null = null;
++// fred-live patch: Node-side mirror of window.__vexaSpeakerEvents. When the HOST
++// ends the meeting, Meet navigates the bot's page and the in-page buffer is wiped
++// before performGracefulLeave can read it — every speaker event is lost (observed
++// live: buffer had 168 events mid-call, 0 after host-end). The browser mirrors each
++// event here as it happens via __vexaMirrorSpeakerEvent; the leave path prefers
++// whichever copy is larger.
++const nodeSpeakerEventsMirror: any[] = [];
+ let botPaSinkModuleId: string | null = null; // PulseAudio module ID for per-bot sink cleanup
+ let currentBotConfig: BotConfig | null = null;
+ export function setActiveRecordingService(svc: RecordingService | null): void {
+@@ -726,6 +733,15 @@ async function performGracefulLeave(
+   } catch (e: any) {
+     log(`[Speaker Events] Failed to read: ${e?.message}`);
+   }
++  // fred-live patch: if the page was navigated/closed (host ended the meeting),
++  // the in-page buffer reads empty — fall back to the Node-side mirror.
++  if (nodeSpeakerEventsMirror.length > speakerEvents.length) {
++    log(
++      `[Speaker Events] Page context had ${speakerEvents.length}; using Node mirror ` +
++      `with ${nodeSpeakerEventsMirror.length} (page likely navigated on meeting end)`
++    );
++    speakerEvents = nodeSpeakerEventsMirror.slice();
++  }
+ 
+   // v0.10.5.3 Pack T — fetch the final resource summary BEFORE we stop
+   // the sampler. Pack O's ring buffer flush happens after — last log line
+@@ -2339,6 +2355,17 @@ export async function runBot(botConfig: BotConfig): Promise<void> {// Store botC
+ 
+     log('[Bot] Authenticated persistent context launched');
+ 
++    // fred-live patch: re-inject the CDP-exported cookie jar (incl. Google session
++    // cookies the on-disk profile can't hold) before navigating to the meeting —
++    // without this the login is half-loaded and Meet serves a ?pli= interstitial.
++    try {
++      const { importCdpCookies } = await import('./cdp-cookies');
++      const restored = await importCdpCookies(context);
++      log(`[Bot] Restored ${restored} cookies via CDP (authenticated session)`);
++    } catch (e: any) {
++      log(`[Bot] CDP cookie import failed: ${e?.message}`);
++    }
++
+     // Apply init scripts to the persistent context
+     const isVoiceAgent = !!botConfig.voiceAgentEnabled;
+     const videoReceiveEnabled = botConfig.videoReceiveEnabled !== false;
+@@ -2512,6 +2539,13 @@ export async function runBot(botConfig: BotConfig): Promise<void> {// Store botC
+     }
+   });
+ 
++  // fred-live patch: incremental speaker-event mirror (see nodeSpeakerEventsMirror).
++  await page.exposeFunction("__vexaMirrorSpeakerEvent", (evt: any) => {
++    if (evt && typeof evt === "object" && nodeSpeakerEventsMirror.length < 50000) {
++      nodeSpeakerEventsMirror.push(evt);
++    }
++  });
++
+   // --- ADDED: Expose a function for browser to trigger Node.js graceful leave ---
+   await page.exposeFunction("triggerNodeGracefulLeave", async () => {
+     log("[Node.js] Received triggerNodeGracefulLeave from browser context.");
+diff --git a/services/vexa-bot/core/src/platforms/googlemeet/join.ts b/services/vexa-bot/core/src/platforms/googlemeet/join.ts
+index d649ff7d..1affeff9 100644
+--- a/services/vexa-bot/core/src/platforms/googlemeet/join.ts
++++ b/services/vexa-bot/core/src/platforms/googlemeet/join.ts
+@@ -70,7 +70,10 @@ export async function joinGoogleMeeting(
+   botConfig: BotConfig
+ ): Promise<void> {
+   const isVoiceAgent = !!botConfig.voiceAgentEnabled;
+-  await page.goto(meetingUrl, { waitUntil: "domcontentloaded" });
++  // fred-live patch: force the Meet UI to English (hl=en) so button-text selectors
++  // are stable regardless of the (possibly localized) signed-in account's locale.
++  const localizedUrl = meetingUrl + (meetingUrl.includes("?") ? "&" : "?") + "hl=en";
++  await page.goto(localizedUrl, { waitUntil: "domcontentloaded" });
+   await page.bringToFront();
+ 
+   // Take screenshot after navigation
+@@ -170,10 +173,22 @@ export async function joinGoogleMeeting(
+     // Authenticated users may see different buttons:
+     // - "Join now" — standard authenticated join
+     // - "Switch here" — same account already in the meeting
+-    // - "Ask to join" — cookies didn't load (fallback to anonymous)
+-    const joinNowSelector = 'button:has-text("Join now")';
+-    const switchHereSelector = 'button:has-text("Switch here")';
+-    const askToJoinSelector = googleJoinButtonSelectors[0];
++    // - "Ask to join" — bot isn't pre-approved for this meeting (still a signed-in,
++    //   non-"risky" join — just knocks). NOT a cookie failure here.
++    // fred-live patch: the bot account's Meet UI is localized (e.g. pt-BR shows
++    // "Participar agora"/"Pedir para participar"), so English-only :has-text
++    // selectors timed out even though login succeeded. Match localized labels too.
++    const joinNowSelector =
++      'button:has-text("Join now"), button:has-text("Participar agora"), ' +
++      'button:has-text("Unirse ahora"), button:has-text("Jetzt teilnehmen"), ' +
++      'button:has-text("Participer"), button:has-text("Participar")';
++    const switchHereSelector =
++      'button:has-text("Switch here"), button:has-text("Alternar aqui"), ' +
++      'button:has-text("Cambiar aquí")';
++    const askToJoinSelector =
++      'button:has-text("Ask to join"), button:has-text("Pedir para participar"), ' +
++      'button:has-text("Solicitar unirse"), button:has-text("Um Teilnahme bitten"), ' +
++      'button:has-text("Demander à participer"), ' + googleJoinButtonSelectors[0];
+ 
+     try {
+       // Race: wait for any join button
+@@ -190,24 +205,13 @@ export async function joinGoogleMeeting(
+         await clickHandle(joinButton.el!, "switch_here");
+         log("Bot joined Google Meet as authenticated user (Switch here — same account already in call).");
+       } else {
+-        // Cookies didn't work — fall back to anonymous join
+-        log("WARNING: Authenticated mode but 'Ask to join' found instead of 'Join now'. Cookies may not be loaded.");
+-        log("Falling back to anonymous-style join...");
+-
+-        // Fill name since we're in anonymous territory
+-        try {
+-          const nameFieldSelector = googleNameInputSelectors[0];
+-          const nameField = await page.$(nameFieldSelector);
+-          if (nameField) {
+-            await fillField(nameField, nameFieldSelector, botName, "name");
+-            log(`Filled bot name: ${botName}`);
+-          }
+-        } catch (e) {
+-          log("No name field to fill.");
+-        }
+-
++        // "Ask to join" while authenticated: the bot account simply isn't
++        // pre-admitted to THIS meeting. It still joins as the signed-in identity
++        // (no name field, no "possibly risky" tag) — it just knocks. Click it and
++        // let the normal admission poll take over; do NOT fill a name.
++        log("Authenticated mode: 'Ask to join' present (bot not pre-approved for this meeting). Knocking as the signed-in account.");
+         await clickHandle(joinButton.el!, "ask_to_join");
+-        log(`Bot joined Google Meet via fallback (Ask to join).`);
++        log("Bot requested to join Google Meet as authenticated user (Ask to join).");
+       }
+     } catch (e) {
+       // No button found — take diagnostic screenshot and fail
+diff --git a/services/vexa-bot/core/src/platforms/googlemeet/recording.ts b/services/vexa-bot/core/src/platforms/googlemeet/recording.ts
+index df3b55d3..f1ccb562 100644
+--- a/services/vexa-bot/core/src/platforms/googlemeet/recording.ts
++++ b/services/vexa-bot/core/src/platforms/googlemeet/recording.ts
+@@ -321,13 +321,20 @@ export async function startGoogleRecording(page: Page, botConfig: BotConfig): Pr
+               const participantId = getGoogleParticipantId(participantElement);
+               const participantName = getGoogleParticipantName(participantElement);
+               // Accumulate for persistence (direct bot accumulation)
+-              (window as any).__vexaSpeakerEvents = (window as any).__vexaSpeakerEvents || [];
+-              (window as any).__vexaSpeakerEvents.push({
++              const speakerEvent = {
+                 event_type: eventType,
+                 participant_name: participantName,
+                 participant_id: participantId,
+                 relative_timestamp_ms: relativeTimestampMs,
+-              });
++              };
++              (window as any).__vexaSpeakerEvents = (window as any).__vexaSpeakerEvents || [];
++              (window as any).__vexaSpeakerEvents.push(speakerEvent);
++              // fred-live patch: mirror to Node as it happens — the window buffer is
++              // wiped when the host ends the meeting (page navigates) and the
++              // leave-time read then returns []. Fire-and-forget.
++              try {
++                (window as any).__vexaMirrorSpeakerEvent?.(speakerEvent);
++              } catch {}
+             }
+ 
+             // Debug: log all class mutations to discover current Google Meet speaking classes
+diff --git a/services/vexa-bot/core/tsconfig.json b/services/vexa-bot/core/tsconfig.json
+index 10253919..77776c74 100644
+--- a/services/vexa-bot/core/tsconfig.json
++++ b/services/vexa-bot/core/tsconfig.json
+@@ -13,5 +13,8 @@
+   },
+   "include": [
+     "src/**/*"
++  ],
++  "exclude": [
++    "src/**/*.test.ts"
+   ]
+ }
+--- /dev/null
++++ b/services/vexa-bot/core/src/cdp-cookies.ts
+index 00000000..bb8c1bfd
+--- /dev/null
++++ b/services/vexa-bot/core/src/cdp-cookies.ts
+@@ -0,0 +1,48 @@
++// fred-live patch: CDP cookie export/import to persist Google's *session* cookies.
++//
++// Chromium only writes cookies that carry an explicit expiry to the on-disk
++// Default/Cookies SQLite file. Google's login (SID/SSID/HSID/SAPISID/__Secure-*PSID
++// etc.) uses in-memory session cookies with no expiry, so the S3/profile save loses
++// the actual login — the authenticated bot then hits Google's ?pli= interstitial and
++// never sees "Join now". Upstream documents this in BROWSER-SESSION.md but ships no fix.
++//
++// Fix: before each save, dump the full cookie jar (session cookies included) via the
++// Playwright/CDP cookie API to Default/cdp-cookies.json (which IS in the persisted
++// profile); on the authenticated meeting join, re-inject them with addCookies before
++// navigating to the meeting.
++import * as fs from 'fs';
++import * as path from 'path';
++import type { BrowserContext } from 'playwright';
++import { BROWSER_DATA_DIR } from './browser-profile';
++
++const COOKIE_FILE = path.join(BROWSER_DATA_DIR, 'Default', 'cdp-cookies.json');
++
++export async function exportCdpCookies(context: BrowserContext): Promise<number> {
++  const cookies = await context.cookies();
++  fs.mkdirSync(path.dirname(COOKIE_FILE), { recursive: true });
++  fs.writeFileSync(COOKIE_FILE, JSON.stringify(cookies), 'utf-8');
++  return cookies.length;
++}
++
++export async function importCdpCookies(context: BrowserContext): Promise<number> {
++  if (!fs.existsSync(COOKIE_FILE)) return 0;
++  let cookies: any[];
++  try {
++    cookies = JSON.parse(fs.readFileSync(COOKIE_FILE, 'utf-8'));
++  } catch {
++    return 0;
++  }
++  if (!Array.isArray(cookies) || cookies.length === 0) return 0;
++  // addCookies rejects the whole batch on one malformed entry; add individually so a
++  // single stale cookie can't wipe the login session.
++  let restored = 0;
++  for (const c of cookies) {
++    try {
++      await context.addCookies([c]);
++      restored++;
++    } catch {
++      /* skip individual bad cookie */
++    }
++  }
++  return restored;
++}

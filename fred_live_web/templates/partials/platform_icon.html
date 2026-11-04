@@ -1,0 +1,30 @@
+{% macro platform_icon(platform, size=20) -%}
+{%- if platform == "google_meet" -%}
+<svg class="platform-icon" style="--size: {{ size }}px" viewBox="0 0 24 24" role="img" aria-label="Google Meet"><title>Google Meet</title>
+  <path fill="#EA4335" d="M2 9.3V6.6C2 5.2 3.2 4 4.6 4H7v5.3H2z"/>
+  <path fill="#2684FC" d="M2 9.3h5v5.4H2z"/>
+  <path fill="#FFBA00" d="M2 14.7h5V20H4.6C3.2 20 2 18.8 2 17.4v-2.7z"/>
+  <path fill="#00AC47" d="M7 4h7c.9 0 1.6.7 1.6 1.6v12.8c0 .9-.7 1.6-1.6 1.6H7V4z"/>
+  <path fill="#00832D" d="M15.6 9.6 22 5.6v12.8l-6.4-4z"/>
+</svg>
+{%- elif platform == "zoom" -%}
+<svg class="platform-icon" style="--size: {{ size }}px" viewBox="0 0 24 24" role="img" aria-label="Zoom"><title>Zoom</title>
+  <rect x="1.5" y="1.5" width="21" height="21" rx="5.5" fill="#2D8CFF"/>
+  <rect x="5" y="8.2" width="9.5" height="7.6" rx="2" fill="#fff"/>
+  <path d="m15.3 11 3.7-2.4v6.8L15.3 13z" fill="#fff"/>
+</svg>
+{%- elif platform == "teams" -%}
+<svg class="platform-icon" style="--size: {{ size }}px" viewBox="0 0 24 24" role="img" aria-label="Microsoft Teams"><title>Microsoft Teams</title>
+  <rect x="1.5" y="1.5" width="21" height="21" rx="5.5" fill="#6264A7"/>
+  <path fill="#fff" d="M6 8h9v2.6h-3.1V17H9.1v-6.4H6z"/>
+  <circle cx="17.6" cy="7.4" r="1.9" fill="#fff" opacity=".9"/>
+  <path fill="#fff" opacity=".9" d="M15.9 10.3h3.4c.4 0 .7.3.7.7v3.5c0 1.4-1.1 2.5-2.4 2.5h-.2c-.5 0-1-.2-1.5-.4z"/>
+</svg>
+{%- elif platform -%}
+<svg class="platform-icon" style="--size: {{ size }}px" viewBox="0 0 24 24" role="img" aria-label="{{ platform }}"><title>{{ platform }}</title>
+  <rect x="1.5" y="1.5" width="21" height="21" rx="5.5" fill="var(--muted-bg)"/>
+  <rect x="5" y="8.2" width="9.5" height="7.6" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  <path d="m15.3 11 3.7-2.4v6.8L15.3 13z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+</svg>
+{%- endif -%}
+{%- endmacro %}

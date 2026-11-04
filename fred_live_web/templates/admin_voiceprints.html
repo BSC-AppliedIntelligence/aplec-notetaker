@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ t("Team voiceprints") }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ t("Team voiceprints") }}</h1>
+    <p class="page-sub">{{ t("Invite members to enroll their voice for speaker identification") }}</p>
+  </div>
+</div>
+
+{% if error %}<div class="notice">{{ t(error) }}</div>{% endif %}
+
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Members") }}</h2>
+  <p class="settings-help">
+    {{ t("Each person records their own sample behind a consent notice; you can invite, cancel, or delete, but never upload audio for someone else. Declining costs a member nothing: their meetings still work, they just appear by their Meet name or as SPEAKER_N.") }}
+  </p>
+  {% for row in roster %}
+  <div class="settings-row vp-row">
+    <div>
+      <p class="settings-status">
+        {% if row.print %}<span class="dot dot-ok"></span>{% else %}<span class="dot"></span>{% endif %}
+        <strong>{{ row.email }}</strong>
+        {% if row.is_admin %}<span class="lang-tag">admin</span>{% endif %}
+      </p>
+      <p class="settings-help">
+        {% if row.print %}
+          {{ th("Enrolled as <strong>{name}</strong>", name=row.print.name) }} · {{ t("{n}s of audio", n=row.print.seconds|round(0)|int) }}
+          {% if (row.print.metadata or {}).get("consented_at") %} · {{ t("consent recorded") }}{% endif %}
+        {% elif row.request and row.request.status == "pending" %}
+          {% set invited_on %}<time data-lt="date" datetime="{{ row.request.requested_at }}">{{ row.request.requested_at[:10] }}</time>{% endset %}
+          {{ th("Invited {date} · waiting for them to record", date=invited_on) }}
+        {% elif row.request and row.request.status == "declined" %}
+          {{ t("Declined the invitation") }}
+        {% else %}
+          {{ t("Not enrolled") }}
+        {% endif %}
+      </p>
+    </div>
+    {% if row.print %}
+    <div class="vp-actions">
+      {% if (row.print.metadata or {}).get("linked_by") %}
+      <form method="post" action="/admin/voiceprints/link"
+            onsubmit='return confirm({{ t("Unlink {name} from {email}? The print stays; Fred stops sharing meetings with this account automatically.", name=row.print.name, email=row.email)|tojson }})'>
+        <input type="hidden" name="slug" value="{{ row.print.slug }}">
+        <input type="hidden" name="email" value="">
+        <button class="btn-secondary btn-s" type="submit">{{ t("Unlink") }}</button>
+      </form>
+      {% endif %}
+      <form method="post" action="/admin/voiceprints/delete"
+            onsubmit='return confirm({{ t("Delete the voiceprint for {name}? They can re-enroll anytime.", name=row.print.name)|tojson }})'>
+        <input type="hidden" name="slug" value="{{ row.print.slug }}">
+        <button class="btn-secondary btn-s" type="submit">{{ t("Delete") }}</button>
+      </form>
+    </div>
+    {% elif row.request and row.request.status == "pending" %}
+    <form method="post" action="/admin/voiceprints/cancel">
+      <input type="hidden" name="email" value="{{ row.email }}">
+      <button class="btn-secondary btn-s" type="submit">{{ t("Cancel invite") }}</button>
+    </form>
+    {% else %}
+    <form method="post" action="/admin/voiceprints/request">
+      <input type="hidden" name="email" value="{{ row.email }}">
+      <button class="btn-primary btn-s" type="submit">{{ t("Invite to enroll") }}</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+{% if unlinked %}
+<section class="panel settings-panel">
+  <h2 class="panel-title">{{ t("Prints not linked to an account") }}</h2>
+  <p class="settings-help">{{ t("Enrolled before the consent flow existed (CLI), or the account left the allowlist. They still name speakers, but Fred cannot share a meeting with that person automatically until the print is linked to their account. Link it here, or the member can re-enroll from Settings.") }}</p>
+  {% for p in unlinked %}
+  <div class="settings-row vp-row">
+    <div>
+      <p class="settings-status"><span class="dot dot-ok"></span><strong>{{ p.name }}</strong></p>
+      <p class="settings-help">{{ p.seconds|round(0)|int }}s · {{ t("source: {source}", source=(p.metadata or {}).get("source", "cli")) }}{% if (p.metadata or {}).get("email") %} · {{ t("linked to {email}, no longer on the allowlist", email=p.metadata.email) }}{% endif %}</p>
+    </div>
+    <div class="vp-actions">
+      {% if linkable %}
+      <form method="post" action="/admin/voiceprints/link" class="token-line">
+        <input type="hidden" name="slug" value="{{ p.slug }}">
+        <select class="ask-input" name="email" required>
+          <option value="">{{ t("Link to account…") }}</option>
+          {% for e in linkable %}<option value="{{ e }}">{{ e }}</option>{% endfor %}
+        </select>
+        <button class="btn-primary btn-s" type="submit">{{ t("Link") }}</button>
+      </form>
+      {% endif %}
+      <form method="post" action="/admin/voiceprints/delete"
+            onsubmit='return confirm({{ t("Delete the voiceprint for {name}?", name=p.name)|tojson }})'>
+        <input type="hidden" name="slug" value="{{ p.slug }}">
+        <button class="btn-secondary btn-s" type="submit">{{ t("Delete") }}</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

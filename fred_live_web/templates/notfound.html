@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ t("Not found") }}{% endblock %}
+{% block content %}
+<div class="empty">
+  <h2>{{ t("Meeting not found") }}</h2>
+  <p>{{ t("This meeting doesn’t exist or belongs to another user.") }}</p>
+  <a class="btn-secondary" href="/">{{ t("Back to meetings") }}</a>
+</div>
+{% endblock %}
