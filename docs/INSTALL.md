@@ -31,6 +31,11 @@ pip install -r requirements.worker.txt -r requirements.web.txt
 pip uninstall -y torchcodec   # see "Known problems"; pip may pull it back with pyannote
 ```
 
+Check that PyTorch sees the GPU: `python -c 'import torch; print(torch.cuda.is_available())'`
+must print `True`. If it does not (a CUDA version or platform the PyPI build does not
+cover), install the build for your CUDA from <https://pytorch.org> first, then the
+requirements again.
+
 `requirements.worker.lock.txt` is the exact environment Fred was validated with
 (ARM64, CUDA 13); the container image uses it. On other platforms install from
 `requirements.worker.txt` as above.
@@ -75,7 +80,8 @@ worker and check that both engines still agree:
 
 ## 5. The language model that writes the notes
 
-Fred talks to any OpenAI-compatible chat API. Pick one.
+Fred talks to any OpenAI-compatible chat API: a model on this machine, a server you
+run elsewhere, or a hosted API. Pick one.
 
 **A. Local llama.cpp** (about 25 GB of GPU memory for the default model):
 
@@ -102,9 +108,36 @@ FRED_LIVE_LLM_MODEL=<the model name on that server>
 FRED_LIVE_LLM_API_KEY=<its API key>
 ```
 
-Transcripts, the meeting chat and Ask questions go to that server; audio never
-does. Qwen3-family models need `FRED_LIVE_LLM_DISABLE_THINKING=true` (the
-default), or they spend the whole answer budget reasoning.
+Qwen3-family models need `FRED_LIVE_LLM_DISABLE_THINKING=true` (the default), or they
+spend the whole answer budget reasoning.
+
+**C. A hosted API** (OpenAI, Anthropic, Mistral, Groq, OpenRouter, Google Gemini and
+others), through its OpenAI-compatible endpoint:
+
+```bash
+FRED_LIVE_LLM_BASE_URL=https://api.openai.com/v1   # the provider's base, usually ending in /v1
+FRED_LIVE_LLM_MODEL=<the provider's model name>
+FRED_LIVE_LLM_API_KEY=<your API key>
+FRED_LIVE_LLM_DISABLE_THINKING=false   # true sends a llama.cpp/vLLM field that hosted APIs refuse
+FRED_LIVE_LLM_CTX_SIZE=128000          # the model's context window
+```
+
+When a provider's route is not under `/v1` (Gemini's is
+`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`), give the
+full `.../chat/completions` URL as the base. Fred sends `temperature` and `max_tokens`
+on every call, so models that refuse them, as some reasoning models do, will not work
+as they are. The prompts were tuned on Qwen3.8-27B; other capable chat models should
+give the same JSON, which Fred validates and repairs, but test the notes on a few of
+your meetings.
+
+With options B and C, the transcripts, the meeting chat and the Ask questions go to
+that server, under its terms; audio never does.
+
+**Transcription stays local.** There is no hosted-transcription backend: Fred
+transcribes every speaker turn separately, hundreds of calls per meeting, with its
+language set, a second language as a hint and Whisper's own language probabilities
+and confidence, which hosted transcription APIs do not expose. Diarization and
+voiceprints need the GPU anyway.
 
 ## 6. Configuration
 
@@ -359,6 +392,8 @@ so editing it needs no restart.
 - **torchcodec must stay uninstalled.** It arrives with pyannote's dependencies,
   and when it cannot load FFmpeg's shared libraries, `transformers` fails at
   import time. Fred decodes audio with the ffmpeg binary instead.
+  pyannote then prints a warning that torchcodec is not installed: that is
+  expected and harmless.
 - **The `transformers` ASR backend** uses far more memory than whisper.cpp in
   word-timestamp mode; keep the default `whispercpp` with diarization on.
 - **A new Docker network can hide part of your network.** Docker picks the first

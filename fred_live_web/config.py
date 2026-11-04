@@ -42,7 +42,7 @@ class WebSettings(BaseSettings):
     # Google OAuth Web client (empty until created in Cloud Console).
     google_client_id: str | None = Field(default=None, alias="GOOGLE_OAUTH_CLIENT_ID")
     google_client_secret: str | None = Field(default=None, alias="GOOGLE_OAUTH_CLIENT_SECRET")
-    # External base URL for the OAuth redirect (e.g. http://dgx-host:18091).
+    # External base URL for the OAuth redirect (e.g. https://fred.example.org).
     base_url: str = Field(default="http://localhost:18091", alias="FRED_LIVE_WEB_BASE_URL")
 
     # Chrome Web Store listing (unlisted). When set, Settings hands out the

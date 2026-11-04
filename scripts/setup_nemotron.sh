@@ -12,7 +12,7 @@ VENV="$ROOT/.venv-nemotron"
 MODEL="${FRED_LIVE_NEMOTRON_MODEL_DIR:-$ROOT/models/nvidia__Nemotron-3-Diarization}"
 
 if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
-    echo "the worker's .venv is missing: set it up first (README.md, Quickstart)" >&2
+    echo "the worker's .venv is missing: set it up first (docs/INSTALL.md, section 2)" >&2
     exit 1
 fi
 

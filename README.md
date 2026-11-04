@@ -3,8 +3,10 @@
 Self-hosted meeting notes for a team. Fred records Google Meet, Microsoft Teams and
 Zoom calls, transcribes them on your own GPU, names the speakers, and writes
 structured notes (summary, decisions, action items with owners, open questions)
-with an open-weights language model that runs on the same machine or on an
-OpenAI-compatible server you control. Audio never leaves your infrastructure.
+with the language model of your choice: an open-weights model on the same
+machine, or any OpenAI-compatible API, your own server or a hosted one. Audio is
+always processed on your machine; with a hosted model, the transcripts go to
+that provider.
 
 ## What it does
 
@@ -33,7 +35,7 @@ OpenAI-compatible server you control. Audio never leaves your infrastructure.
 
 | | |
 | --- | --- |
-| GPU | NVIDIA with CUDA. Transcription and diarization peak around 8 GB. The default local LLM (Qwen3.8-27B, Q6_K) needs about 25 GB more; point Fred at a remote OpenAI-compatible server instead and it is not needed. Developed on an NVIDIA GB10 (ARM64, unified memory). |
+| GPU | NVIDIA with CUDA. Transcription and diarization always run on it and peak around 8 GB. The default local LLM (Qwen3.8-27B, Q6_K) needs about 25 GB more; with a remote or hosted LLM it is not needed. Developed on an NVIDIA GB10 (ARM64, unified memory). |
 | Disk | About 4 GB of models, plus 23 GB for the local LLM. Meeting audio is deleted after 15 days by default; transcripts and notes are kept. |
 | Software | Linux, Python 3.12, git, cmake and a C++ toolchain (whisper.cpp is built from source). Docker only for the meeting bot. |
 | Accounts | A Hugging Face account that accepted the conditions of `pyannote/speaker-diarization-community-1`, and a Google Cloud OAuth client for sign-in. |
@@ -62,7 +64,7 @@ cp .env.worker.example .env.worker          # then fill in the secrets (see the 
 | --- | --- | --- |
 | Worker (`fred_live_worker`) | 18088 | Receives extension uploads and bot webhooks, runs transcription, diarization and the notes, stores every run under `data/meetings/` |
 | Web app (`fred_live_web`) | 18091 | The site: meetings, notes, transcript, Ask, settings, sharing, admin pages. Also relays the extension's uploads to the worker, so one public hostname serves both |
-| llama.cpp server (optional) | 18081 | The local summarizer, over an OpenAI-compatible API |
+| llama.cpp server (optional) | 18081 | The local summarizer, over an OpenAI-compatible API; or use your own server or a hosted API |
 | Calendar watcher (optional) | none | Sends the bot to the Meet events of each connected Google Calendar |
 | Vexa (optional) | 8056, 8057 | The meeting bot, in Docker |
 

@@ -275,10 +275,10 @@ def _retryable(response: httpx.Response) -> bool:
 
 def glossary_instruction(path: Path) -> str:
     """The prompt sentence for the team's own names, which speech recognition misspells
-    ("Cuen" for Qwen, "Ember House" for ML House) and notes would copy: on 3 real meetings
+    ("Cuen" for Qwen, "Hawking Faith" for Hugging Face) and notes would copy: on 3 real meetings
     9 wrong forms in the notes became none, and the right names went from 5 to 22, with
     the same 61 decisions. Told only to write the name as listed, the writer once kept
-    both ("Jev (Jeff)", twice in one meeting's notes), hence "alone". One name per line
+    both ("Kwen (Qwen)", twice in one meeting's notes), hence "alone". One name per line
     in the file, `term | what it is | how it comes out wrong`, with # for comments; a
     deployment's own list, and read at every call, so editing it needs no restart."""
     try:
@@ -313,8 +313,12 @@ class LlamaCppClient:
 
     def _chat_completions_url(self) -> str:
         base = self.settings.llm_base_url.rstrip("/")
-        # .../v1: llama.cpp, vLLM. .../api: Open WebUI (e.g. https://llm.example.org/api),
-        # whose OpenAI-compatible route is /api/chat/completions.
+        # .../v1: llama.cpp, vLLM, most hosted APIs. .../api: Open WebUI (e.g.
+        # https://llm.example.org/api), whose OpenAI-compatible route is
+        # /api/chat/completions. A full .../chat/completions URL is taken as is,
+        # for providers whose route is elsewhere (Gemini's .../v1beta/openai).
+        if base.endswith("/chat/completions"):
+            return base
         if base.endswith(("/v1", "/api")):
             return f"{base}/chat/completions"
         return f"{base}/v1/chat/completions"

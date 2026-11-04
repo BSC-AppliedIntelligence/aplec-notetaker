@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# The worker reads .env.worker from its working directory.
+cd "$ROOT_DIR"
 VENV_PYTHON="$ROOT_DIR/.venv/bin/python"
 
 if ! command -v ffmpeg >/dev/null 2>&1 && [[ -x "$VENV_PYTHON" ]]; then
@@ -20,8 +22,12 @@ PY
   fi
 fi
 
-exec uvicorn \
+# The venv's own uvicorn: the PATH above only gains .venv/bin when ffmpeg is missing.
+UVICORN="$ROOT_DIR/.venv/bin/uvicorn"
+[[ -x "$UVICORN" ]] || UVICORN=uvicorn
+
+exec "$UVICORN" \
   fred_live_worker.main:app \
   --app-dir "$ROOT_DIR" \
   --host "${FRED_LIVE_APP_HOST:-0.0.0.0}" \
-  --port "${FRED_LIVE_APP_PORT:-8088}"
+  --port "${FRED_LIVE_APP_PORT:-18088}"

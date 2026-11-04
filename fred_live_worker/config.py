@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     )
 
     app_host: str = Field(default="0.0.0.0", alias="FRED_LIVE_APP_HOST")
-    app_port: int = Field(default=8088, alias="FRED_LIVE_APP_PORT")
+    app_port: int = Field(default=18088, alias="FRED_LIVE_APP_PORT")
     auth_token: SecretStr | None = Field(default=None, alias="FRED_LIVE_AUTH_TOKEN")
     data_dir: Path = Field(default=REPO_ROOT / "data", alias="FRED_LIVE_DATA_DIR")
     # The team's own names, for the notes and Ask (llm.glossary_instruction). Default:
@@ -162,7 +162,7 @@ class Settings(BaseSettings):
     hf_token: SecretStr | None = Field(default=None, alias="FRED_LIVE_HF_TOKEN")
     asr_chunk_length_s: int = Field(default=30, alias="FRED_LIVE_ASR_CHUNK_LENGTH_S")
     asr_batch_size: int = Field(default=8, alias="FRED_LIVE_ASR_BATCH_SIZE")
-    llm_base_url: str = Field(default="http://127.0.0.1:8081", alias="FRED_LIVE_LLM_BASE_URL")
+    llm_base_url: str = Field(default="http://127.0.0.1:18081", alias="FRED_LIVE_LLM_BASE_URL")
     llm_model: str = Field(default="qwen3.8-27b", alias="FRED_LIVE_LLM_MODEL")
     llm_api_key: SecretStr | None = Field(default=None, alias="FRED_LIVE_LLM_API_KEY")
     llm_timeout_seconds: int = Field(default=600, alias="FRED_LIVE_LLM_TIMEOUT_SECONDS")

@@ -19,7 +19,7 @@ BUILD="${WHISPER_CPP_BUILD:-$WHISPER_CPP_DIR/build}"
 OUT="$BUILD/bin/whisper-batch"
 
 if [[ ! -x "$BUILD/bin/whisper-cli" ]]; then
-    echo "whisper-cli not found in $BUILD/bin: build whisper.cpp first (README.md, Quickstart step 3)" >&2
+    echo "whisper-cli not found in $BUILD/bin: build whisper.cpp first (docs/INSTALL.md, section 3)" >&2
     exit 1
 fi
 if [[ ! -e "$BUILD/bin/libwhisper.so" || ! -f "$BUILD/examples/libcommon.a" ]]; then
