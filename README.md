@@ -91,3 +91,12 @@ Apache License 2.0, see [LICENSE](LICENSE). Bundled fonts, icons and scripts kee
 their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md),
 as do the models Fred downloads and the projects it builds on (whisper.cpp and
 llama.cpp, MIT; Vexa, Apache-2.0).
+
+## Acknowledgements
+
+This work is funded by the Ministerio para la Transformación Digital y de la Función
+Pública and Plan de Recuperación, Transformación y Resiliencia - Funded by
+EU – NextGenerationEU within the framework of the project Desarrollo Modelos ALIA.
+
+This work has been promoted and financed by the Government of Catalonia through the
+[Aina Project](https://projecteaina.cat/).
