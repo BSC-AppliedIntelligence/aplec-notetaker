@@ -27,7 +27,7 @@ UVICORN="$ROOT_DIR/.venv/bin/uvicorn"
 [[ -x "$UVICORN" ]] || UVICORN=uvicorn
 
 exec "$UVICORN" \
-  fred_live_worker.main:app \
+  aplec_worker.main:app \
   --app-dir "$ROOT_DIR" \
-  --host "${FRED_LIVE_APP_HOST:-0.0.0.0}" \
-  --port "${FRED_LIVE_APP_PORT:-18088}"
+  --host "${APLEC_APP_HOST:-0.0.0.0}" \
+  --port "${APLEC_APP_PORT:-18088}"

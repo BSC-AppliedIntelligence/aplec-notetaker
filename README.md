@@ -55,15 +55,15 @@ git clone https://github.com/ggml-org/whisper.cpp vendor/whisper.cpp
 ./scripts/download_models.sh --llm          # drop --llm when the LLM runs elsewhere
 cp .env.worker.example .env.worker          # then fill in the secrets (see the guide)
 # run the services: deploy/systemd/ has user units, or scripts/run_*.sh by hand
-./scripts/package_extension.sh              # the extension, pointed at FRED_LIVE_WEB_BASE_URL
+./scripts/package_extension.sh              # the extension, pointed at APLEC_WEB_BASE_URL
 ```
 
 ## How it fits together
 
 | Service | Default port | Role |
 | --- | --- | --- |
-| Worker (`fred_live_worker`) | 18088 | Receives extension uploads and bot webhooks, runs transcription, diarization and the notes, stores every run under `data/meetings/` |
-| Web app (`fred_live_web`) | 18091 | The site: meetings, notes, transcript, Ask, settings, sharing, admin pages. Also relays the extension's uploads to the worker, so one public hostname serves both |
+| Worker (`aplec_worker`) | 18088 | Receives extension uploads and bot webhooks, runs transcription, diarization and the notes, stores every run under `data/meetings/` |
+| Web app (`aplec_web`) | 18091 | The site: meetings, notes, transcript, Ask, settings, sharing, admin pages. Also relays the extension's uploads to the worker, so one public hostname serves both |
 | llama.cpp server (optional) | 18081 | The local summarizer, over an OpenAI-compatible API; or use your own server or a hosted API |
 | Calendar watcher (optional) | none | Sends the bot to the Meet events of each connected Google Calendar |
 | Vexa (optional) | 8056, 8057 | The meeting bot, in Docker |
@@ -75,8 +75,8 @@ language → notes from the transcript → web app.
 ## Repository layout
 
 ```
-fred_live_worker/   worker: pipeline, ASR, language ID, diarization, voiceprints, notes, capture, bot integration
-fred_live_web/      web app: sign-in, pages, translations, static assets
+aplec_worker/   worker: pipeline, ASR, language ID, diarization, voiceprints, notes, capture, bot integration
+aplec_web/      web app: sign-in, pages, translations, static assets
 extension/          Chrome extension (Manifest V3)
 tools/              whisper-batch (keeps whisper.cpp loaded per meeting), Nemotron runner
 patches/            whisper.cpp second-language patch, Vexa deployment patch

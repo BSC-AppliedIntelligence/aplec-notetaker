@@ -6,7 +6,7 @@
 # the same way inside the container as on the host. Only the worker modules the
 # web app imports ride along (stdlib, itsdangerous and pydantic; no torch).
 #
-# Build:  docker build -t fred-live-web -f Dockerfile.web .
+# Build:  docker build -t aplec-notetaker-web -f Dockerfile.web .
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -14,17 +14,17 @@ WORKDIR /app
 COPY requirements.web.txt .
 RUN pip install --no-cache-dir -r requirements.web.txt
 
-COPY fred_live_web/ fred_live_web/
-COPY fred_live_worker/__init__.py fred_live_worker/user_prefs.py \
-     fred_live_worker/capture.py fred_live_worker/users.py \
-     fred_live_worker/meeting_chat.py fred_live_worker/schemas.py \
-     fred_live_worker/speaker_merge.py fred_live_worker/meeting_access.py \
-     fred_live_worker/
+COPY aplec_web/ aplec_web/
+COPY aplec_worker/__init__.py aplec_worker/user_prefs.py \
+     aplec_worker/capture.py aplec_worker/users.py \
+     aplec_worker/meeting_chat.py aplec_worker/schemas.py \
+     aplec_worker/speaker_merge.py aplec_worker/meeting_access.py \
+     aplec_worker/
 
 # A reverse proxy in front reaches the container over its network; binding
 # beyond loopback also turns off the loopback-only dev login.
-ENV FRED_LIVE_WEB_HOST=0.0.0.0
+ENV APLEC_WEB_HOST=0.0.0.0
 EXPOSE 18091
 
-CMD ["uvicorn", "fred_live_web.app:app", "--host", "0.0.0.0", "--port", "18091", \
+CMD ["uvicorn", "aplec_web.app:app", "--host", "0.0.0.0", "--port", "18091", \
      "--proxy-headers", "--forwarded-allow-ips", "*"]

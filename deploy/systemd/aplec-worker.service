@@ -1,0 +1,14 @@
+# Copy to ~/.config/systemd/user/ (docs/INSTALL.md, section 8). Assumes the
+# checkout at ~/aplec-notetaker: change the three paths if it is elsewhere.
+[Unit]
+Description=Aplec worker (transcription, speakers, notes)
+
+[Service]
+WorkingDirectory=%h/aplec-notetaker
+EnvironmentFile=%h/aplec-notetaker/.env.worker
+ExecStart=%h/aplec-notetaker/scripts/run_worker.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

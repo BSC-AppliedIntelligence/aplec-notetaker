@@ -2,4 +2,4 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-exec "$ROOT_DIR/.venv/bin/python" -m fred_live_worker.autojoin "$@"
+exec "$ROOT_DIR/.venv/bin/python" -m aplec_worker.autojoin "$@"

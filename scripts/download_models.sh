@@ -9,12 +9,12 @@
 #
 # Not here: pyannote's diarization model and the SpeechBrain models download
 # themselves on first use (pyannote's is gated: accept its conditions on Hugging
-# Face and set FRED_LIVE_HF_TOKEN), and the optional second diarizer comes with
+# Face and set APLEC_HF_TOKEN), and the optional second diarizer comes with
 # scripts/setup_nemotron.sh.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MODELS_DIR="${FRED_LIVE_MODELS_DIR:-$ROOT_DIR/models}"
+MODELS_DIR="${APLEC_MODELS_DIR:-$ROOT_DIR/models}"
 
 WANT_LLM=0
 WANT_VOICEPRINTS=0

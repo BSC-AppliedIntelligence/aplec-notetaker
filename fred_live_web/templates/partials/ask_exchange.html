@@ -1,7 +1,0 @@
-<div class="bubble bubble-user">{{ question }}</div>
-{% if error %}
-<div class="bubble bubble-error">{{ error }}</div>
-{% else %}
-<div class="bubble bubble-fred">{{ answer | markdown }}</div>
-{% endif %}
-<input type="hidden" name="history" id="ask-history" value="{{ history_json }}" hx-swap-oob="true">

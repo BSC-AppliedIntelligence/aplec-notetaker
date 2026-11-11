@@ -1,4 +1,4 @@
-# fred_live_web frontend (installs into the same venv as the worker)
+# aplec_web frontend (installs into the same venv as the worker)
 fastapi>=0.115
 uvicorn[standard]>=0.30
 jinja2>=3.1

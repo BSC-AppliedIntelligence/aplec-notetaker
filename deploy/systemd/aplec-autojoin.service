@@ -1,0 +1,15 @@
+# The calendar watcher, only with the meeting bot (docs/INSTALL.md, section 11).
+# Copy to ~/.config/systemd/user/.
+[Unit]
+Description=Aplec calendar watcher (sends the meeting bot)
+After=aplec-worker.service
+
+[Service]
+WorkingDirectory=%h/aplec-notetaker
+EnvironmentFile=%h/aplec-notetaker/.env.worker
+ExecStart=%h/aplec-notetaker/scripts/run_autojoin.sh
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=default.target

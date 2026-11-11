@@ -1,5 +1,5 @@
 # Keep the build context tiny and secrets/state out of images. The web image
-# (Dockerfile.web) COPYs only requirements.web.txt, fred_live_web/ and two
+# (Dockerfile.web) COPYs only requirements.web.txt, aplec_web/ and two
 # worker modules, but this file protects any future COPY-with-globs too.
 .git
 .venv

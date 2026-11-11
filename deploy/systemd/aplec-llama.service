@@ -1,0 +1,15 @@
+# The local summarizer (docs/INSTALL.md, section 5, option A). Copy to
+# ~/.config/systemd/user/. scripts/run_llama_server.sh takes its settings
+# (APLEC_LLAMACPP_*) from the environment, loaded here from .env.worker.
+[Unit]
+Description=Aplec summarizer (llama.cpp server)
+
+[Service]
+WorkingDirectory=%h/aplec-notetaker
+EnvironmentFile=%h/aplec-notetaker/.env.worker
+ExecStart=%h/aplec-notetaker/scripts/run_llama_server.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

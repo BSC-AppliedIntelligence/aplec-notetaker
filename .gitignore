@@ -21,6 +21,7 @@ data/
 .env.worker
 
 # Built by scripts/package_extension.sh for each deployment
-fred_live_web/static/fred-extension.zip
-fred_live_web/static/fred-extension-store.zip
-fred_live_web/static/fred-extension-version.json
+aplec_web/static/aplec-extension.zip
+aplec_web/static/aplec-extension-store.zip
+aplec_web/static/aplec-extension-version.json
+aplec_web/static/fred-extension-version.json

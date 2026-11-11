@@ -2,7 +2,7 @@
 
 The extension in `extension/` is the same code for every team; what makes a build
 yours is the site it talks to. `scripts/package_extension.sh` writes your
-`FRED_LIVE_WEB_BASE_URL` into it (the host permission and the default server in
+`APLEC_WEB_BASE_URL` into it (the host permission and the default server in
 Options), so each deployment packages its own copy.
 
 There are two ways to hand it out.
@@ -37,14 +37,14 @@ Each release:
 ```bash
 # raise "version" in extension/manifest.json, then:
 ./scripts/package_extension.sh
-# upload fred_live_web/static/fred-extension-store.zip in the developer console:
+# upload aplec_web/static/aplec-extension-store.zip in the developer console:
 # your item -> Package -> Upload new package -> Submit for review
 ```
 
-Upload `fred-extension-store.zip`, not `fred-extension.zip`: the store wants
+Upload `aplec-extension-store.zip`, not `aplec-extension.zip`: the store wants
 `manifest.json` at the root of the zip, and the script checks that it is. Updates
 usually pass review within hours. Once the listing is live, set
-`FRED_LIVE_EXTENSION_STORE_URL` in `.env.worker` to its link, and Settings hands
+`APLEC_EXTENSION_STORE_URL` in `.env.worker` to its link, and Settings hands
 out the store link instead of the zip. Installing from the store gives a new
 extension ID: people should remove their unpacked copy, grant the microphone
 again in Options and paste their token again.

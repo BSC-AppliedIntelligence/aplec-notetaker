@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Environment and weights of the second diarizer, which runs as a subprocess of
-# the worker (tools/nemotron/diarize.py, FRED_LIVE_DIARIZATION_NEMOTRON). Run once,
+# the worker (tools/nemotron/diarize.py, APLEC_DIARIZATION_NEMOTRON). Run once,
 # after the worker's .venv exists. Downloads ~700 MB of packages and 379 MB of
 # weights; rerunning skips what is already there.
 #
@@ -9,7 +9,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VENV="$ROOT/.venv-nemotron"
-MODEL="${FRED_LIVE_NEMOTRON_MODEL_DIR:-$ROOT/models/nvidia__Nemotron-3-Diarization}"
+MODEL="${APLEC_NEMOTRON_MODEL_DIR:-$ROOT/models/nvidia__Nemotron-3-Diarization}"
 
 if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
     echo "the worker's .venv is missing: set it up first (docs/INSTALL.md, section 2)" >&2
@@ -38,4 +38,4 @@ snapshot_download(
 )
 PY
 "$VENV/bin/python" -c 'import torch, transformers; print("torch", torch.__version__, "cuda", torch.cuda.is_available(), "transformers", transformers.__version__)'
-echo "ready: set FRED_LIVE_DIARIZATION_NEMOTRON=true in .env.worker and restart the worker"
+echo "ready: set APLEC_DIARIZATION_NEMOTRON=true in .env.worker and restart the worker"

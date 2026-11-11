@@ -27,8 +27,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from fred_live_worker.asr import WhisperAsrService  # noqa: E402
-from fred_live_worker.config import get_settings  # noqa: E402
+from aplec_worker.asr import WhisperAsrService  # noqa: E402
+from aplec_worker.config import get_settings  # noqa: E402
 
 SPAN_SECONDS = (3.0, 7.0, 15.0, 28.0)
 
@@ -46,7 +46,7 @@ def main() -> int:
         return 2
 
     checked, differences, tag_changed = 0, [], 0
-    with tempfile.TemporaryDirectory(prefix="fredlive-verify-") as tmp, svc.batch_session():
+    with tempfile.TemporaryDirectory(prefix="aplec-verify-") as tmp, svc.batch_session():
         batch = svc._batch
         if batch is None:
             print("whisper-batch did not start (see the log above)", file=sys.stderr)

@@ -1,4 +1,4 @@
-# fred-live worker, containerized (GPU).
+# aplec-notetaker worker, containerized (GPU).
 #
 # The heavy half of the system: whisper.cpp ASR, pyannote diarization and
 # ReDimNet voiceprints, all on CUDA. The web app has its own (CPU-only) image;
@@ -10,7 +10,7 @@
 #   * meeting data and recordings — mounted, because they are the product.
 #
 # Build (ARM64 host; the CUDA compile dominates, ~20 min the first time):
-#   docker build -t fred-live-worker -f Dockerfile.worker .
+#   docker build -t aplec-notetaker-worker -f Dockerfile.worker .
 
 ARG CUDA_VERSION=13.0.0
 ARG UBUNTU=ubuntu24.04
@@ -106,24 +106,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=python-builder /opt/venv /opt/venv
 COPY --from=whisper-builder /src/build/bin/whisper-cli /usr/local/bin/whisper-cli
-# Found next to whisper-cli (FRED_LIVE_WHISPERCPP_BATCH_BIN overrides).
+# Found next to whisper-cli (APLEC_WHISPERCPP_BATCH_BIN overrides).
 COPY --from=whisper-builder /src/build/bin/whisper-batch /usr/local/bin/whisper-batch
 
 WORKDIR /app
 ENV VIRTUAL_ENV=/opt/venv PATH=/opt/venv/bin:$PATH PYTHONUNBUFFERED=1
-COPY fred_live_worker/ fred_live_worker/
+COPY aplec_worker/ aplec_worker/
 COPY scripts/ scripts/
 
-# Config defaults resolve relative to the checkout (fred_live_worker/config.py),
+# Config defaults resolve relative to the checkout (aplec_worker/config.py),
 # which inside the image is /app: mount models/, data/ and recordings/ there.
 # The docker CLI above is for retention, which deletes Vexa recordings (uid 999)
 # via `docker exec`; mount /var/run/docker.sock to enable it.
-ENV FRED_LIVE_WHISPERCPP_BIN=/usr/local/bin/whisper-cli \
-    FRED_LIVE_APP_HOST=0.0.0.0 \
-    FRED_LIVE_APP_PORT=18088
+ENV APLEC_WHISPERCPP_BIN=/usr/local/bin/whisper-cli \
+    APLEC_APP_HOST=0.0.0.0 \
+    APLEC_APP_PORT=18088
 EXPOSE 18088
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s \
   CMD python3 -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:18088/healthz').status==200 else 1)"
 
-CMD ["uvicorn", "fred_live_worker.main:app", "--host", "0.0.0.0", "--port", "18088"]
+CMD ["uvicorn", "aplec_worker.main:app", "--host", "0.0.0.0", "--port", "18088"]

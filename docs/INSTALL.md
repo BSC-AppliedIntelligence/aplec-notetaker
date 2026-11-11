@@ -72,7 +72,7 @@ worker and check that both engines still agree:
 
 - **Diarization**: `pyannote/speaker-diarization-community-1` is gated. Accept its
   conditions on Hugging Face with your account, create a read token, and put it
-  in `.env.worker` as both `FRED_LIVE_HF_TOKEN` and `HF_TOKEN`. The worker
+  in `.env.worker` as both `APLEC_HF_TOKEN` and `HF_TOKEN`. The worker
   downloads it on first use.
 - **Language ID** (`speechbrain/lang-id-voxlingua107-ecapa`) downloads itself on
   first use into `models/`.
@@ -95,31 +95,31 @@ cd ../..
 ```
 
 The script serves the model downloaded with `--llm`, with its speculative-decoding
-drafter when present. Its settings (`FRED_LIVE_LLAMACPP_*`) are read from its own
+drafter when present. Its settings (`APLEC_LLAMACPP_*`) are read from its own
 environment; the example unit in `deploy/systemd` loads them from `.env.worker`.
-Keep `FRED_LIVE_LLM_CTX_SIZE` equal to the server's context per slot.
+Keep `APLEC_LLM_CTX_SIZE` equal to the server's context per slot.
 
 **B. A server you already run** (vLLM, llama.cpp elsewhere, or an Open WebUI
 instance, whose base URL ends in `/api`):
 
 ```bash
-FRED_LIVE_LLM_BASE_URL=https://llm.example.org/api
-FRED_LIVE_LLM_MODEL=<the model name on that server>
-FRED_LIVE_LLM_API_KEY=<its API key>
+APLEC_LLM_BASE_URL=https://llm.example.org/api
+APLEC_LLM_MODEL=<the model name on that server>
+APLEC_LLM_API_KEY=<its API key>
 ```
 
-Qwen3-family models need `FRED_LIVE_LLM_DISABLE_THINKING=true` (the default), or they
+Qwen3-family models need `APLEC_LLM_DISABLE_THINKING=true` (the default), or they
 spend the whole answer budget reasoning.
 
 **C. A hosted API** (OpenAI, Anthropic, Mistral, Groq, OpenRouter, Google Gemini and
 others), through its OpenAI-compatible endpoint:
 
 ```bash
-FRED_LIVE_LLM_BASE_URL=https://api.openai.com/v1   # the provider's base, usually ending in /v1
-FRED_LIVE_LLM_MODEL=<the provider's model name>
-FRED_LIVE_LLM_API_KEY=<your API key>
-FRED_LIVE_LLM_DISABLE_THINKING=false   # true sends a llama.cpp/vLLM field that hosted APIs refuse
-FRED_LIVE_LLM_CTX_SIZE=128000          # the model's context window
+APLEC_LLM_BASE_URL=https://api.openai.com/v1   # the provider's base, usually ending in /v1
+APLEC_LLM_MODEL=<the provider's model name>
+APLEC_LLM_API_KEY=<your API key>
+APLEC_LLM_DISABLE_THINKING=false   # true sends a llama.cpp/vLLM field that hosted APIs refuse
+APLEC_LLM_CTX_SIZE=128000          # the model's context window
 ```
 
 When a provider's route is not under `/v1` (Gemini's is
@@ -150,13 +150,13 @@ Both the worker and the web app read this file. Set at least:
 
 | Setting | Value |
 | --- | --- |
-| `FRED_LIVE_AUTH_TOKEN` | `openssl rand -hex 24`. Guards the worker's internal API; empty means every internal request is refused |
-| `FRED_LIVE_WEB_SESSION_SECRET` | `openssl rand -hex 32`. Signs sign-in sessions and the extension's capture tokens; the web app refuses to start without it |
-| `FRED_LIVE_WEB_BASE_URL` | The public URL of your site, e.g. `https://aplec.example.org` |
-| `FRED_LIVE_WEB_USERS` | The first administrator: `you@example.org:1:admin` (see section 9) |
+| `APLEC_AUTH_TOKEN` | `openssl rand -hex 24`. Guards the worker's internal API; empty means every internal request is refused |
+| `APLEC_WEB_SESSION_SECRET` | `openssl rand -hex 32`. Signs sign-in sessions and the extension's capture tokens; the web app refuses to start without it |
+| `APLEC_WEB_BASE_URL` | The public URL of your site, e.g. `https://aplec.example.org` |
+| `APLEC_WEB_USERS` | The first administrator: `you@example.org:1:admin` (see section 9) |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | From section 7 |
-| `FRED_LIVE_HF_TOKEN`, `HF_TOKEN` | From section 4 |
-| `FRED_LIVE_APP_PORT` | `18088`: the port the web app and the meeting bot expect |
+| `APLEC_HF_TOKEN`, `HF_TOKEN` | From section 4 |
+| `APLEC_APP_PORT` | `18088`: the port the web app and the meeting bot expect |
 
 Everything else has working defaults; the file documents each setting.
 
@@ -172,55 +172,55 @@ in a project of your own:
    only the test users you list can sign in, and calendar connections expire
    after 7 days; publish the app to lift both.
 2. **Credentials → Create OAuth client ID → Web application**, with the
-   authorized redirect URI `<FRED_LIVE_WEB_BASE_URL>/auth/google/callback`.
+   authorized redirect URI `<APLEC_WEB_BASE_URL>/auth/google/callback`.
 3. Copy the client ID and secret into `.env.worker`.
 
 ## 8. Running the services
 
 `deploy/systemd/` has user units for the worker, the web app, the local LLM and
-the calendar watcher. They assume the checkout is at `~/fred-notetaker`; edit
+the calendar watcher. They assume the checkout is at `~/aplec-notetaker`; edit
 `WorkingDirectory` and the paths if it is elsewhere.
 
 ```bash
 mkdir -p ~/.config/systemd/user
-cp deploy/systemd/fred-worker.service deploy/systemd/fred-web.service ~/.config/systemd/user/
-cp deploy/systemd/fred-llama.service ~/.config/systemd/user/     # option A only
+cp deploy/systemd/aplec-worker.service deploy/systemd/aplec-web.service ~/.config/systemd/user/
+cp deploy/systemd/aplec-llama.service ~/.config/systemd/user/     # option A only
 systemctl --user daemon-reload
-systemctl --user enable --now fred-worker fred-web               # (+ fred-llama)
+systemctl --user enable --now aplec-worker aplec-web               # (+ aplec-llama)
 loginctl enable-linger "$USER"   # keep them running without an open session (may need an admin)
 curl -s http://127.0.0.1:18088/healthz
 ```
 
-Logs: `journalctl --user -u fred-worker -f`. Without systemd, run
+Logs: `journalctl --user -u aplec-worker -f`. Without systemd, run
 `scripts/run_worker.sh`, `scripts/run_web.sh` and `scripts/run_llama_server.sh`
 with the same environment.
 
 The worker binds `0.0.0.0:18088` so the meeting bot's containers can reach it.
-If you do not run the bot, set `FRED_LIVE_APP_HOST=127.0.0.1`; otherwise keep the
+If you do not run the bot, set `APLEC_APP_HOST=127.0.0.1`; otherwise keep the
 port closed to everything but the host and its containers.
 
 ## 9. Publishing the site
 
 The web app listens on `127.0.0.1:18091`. Put it behind any reverse proxy that
 terminates HTTPS (nginx, Caddy, Traefik) on the host name of
-`FRED_LIVE_WEB_BASE_URL`, forwarding the usual `X-Forwarded-*` headers. Sign-in
+`APLEC_WEB_BASE_URL`, forwarding the usual `X-Forwarded-*` headers. Sign-in
 cookies become `Secure` automatically when that URL is https. The site also
 relays the extension's uploads (`/capture/*`) to the worker, so this one host name
 is all the extension needs.
 
 `Dockerfile.web` builds the web app as a container instead; mount `.env.worker`
-at `/app/.env.worker` and `data/` at `/app/data`, and set `FRED_LIVE_WORKER_URL`
+at `/app/.env.worker` and `data/` at `/app/data`, and set `APLEC_WORKER_URL`
 to an address where the container can reach the worker.
 `docker-compose.gpu.yml` runs the worker, the LLM and the web app all in
 containers (build `Dockerfile.worker`, which compiles whisper.cpp; set
 `CUDA_ARCH` for your GPU).
 
-**Users.** `FRED_LIVE_WEB_USERS` lists `email:number[:admin]` entries, separated
+**Users.** `APLEC_WEB_USERS` lists `email:number[:admin]` entries, separated
 by commas: the number identifies the person's meetings, and admins see every
 meeting. With the meeting bot installed (section 11), new people simply sign in:
 their request waits on the **Users** page until an admin approves it, which
 creates their bot account too and adds them to `data/users.json`. Without the
-bot, add each person to `FRED_LIVE_WEB_USERS` with a number of their own and
+bot, add each person to `APLEC_WEB_USERS` with a number of their own and
 restart the web app. Removing someone from either list revokes their session and
 their extension token on the next request.
 
@@ -232,10 +232,10 @@ Build it pointed at your site:
 ./scripts/package_extension.sh
 ```
 
-The script reads `FRED_LIVE_WEB_BASE_URL` from `.env.worker` (or the
+The script reads `APLEC_WEB_BASE_URL` from `.env.worker` (or the
 environment), writes your site into the extension's permissions and default
-server, and puts two zips in `fred_live_web/static/`: `fred-extension.zip`, which
-the site offers in **Settings → Browser extension**, and `fred-extension-store.zip`,
+server, and puts two zips in `aplec_web/static/`: `aplec-extension.zip`, which
+the site offers in **Settings → Browser extension**, and `aplec-extension-store.zip`,
 the layout the Chrome Web Store accepts. Rerun it whenever the site URL or the
 extension changes.
 
@@ -263,14 +263,14 @@ meeting, a persistent signed-in session, delivery to a worker on the same host).
 ```bash
 git submodule update --init vendor/vexa
 cd vendor/vexa
-git apply ../../patches/vexa-fredlive-deploy.patch
+git apply ../../patches/vexa-aplec-deploy.patch
 cp deploy/env-example .env
 ```
 
 In `vendor/vexa/.env` set:
 
 ```
-BROWSER_IMAGE=fred-live
+BROWSER_IMAGE=aplec-notetaker
 ADMIN_TOKEN=<openssl rand -hex 24>
 ADMIN_API_TOKEN=<the same value>
 STORAGE_BACKEND=local
@@ -286,16 +286,16 @@ goes to Vexa's hosted transcription service. Then build the bot image and start
 Vexa:
 
 ```bash
-docker build -t fred-live -f services/vexa-bot/Dockerfile ./services/vexa-bot
+docker build -t aplec-notetaker -f services/vexa-bot/Dockerfile ./services/vexa-bot
 docker compose --env-file .env -f deploy/compose/docker-compose.yml up -d
 cd ../..
 ```
 
-In `.env.worker`, set `FRED_LIVE_WEBHOOK_SECRET` (`openssl rand -hex 24`), then
+In `.env.worker`, set `APLEC_WEBHOOK_SECRET` (`openssl rand -hex 24`), then
 register each person with Vexa, starting with yourself:
 
 ```bash
-python -m fred_live_worker.onboard --email you@example.org --admin
+python -m aplec_worker.onboard --email you@example.org --admin
 ```
 
 This creates their Vexa user and API key, registers the webhook that tells the
@@ -310,18 +310,18 @@ needs the `calendar.events` scope from section 7), and chooses which of their
 meetings the bot joins. Install and start the watcher:
 
 ```bash
-cp deploy/systemd/fred-autojoin.service ~/.config/systemd/user/
-systemctl --user daemon-reload && systemctl --user enable --now fred-autojoin
+cp deploy/systemd/aplec-autojoin.service ~/.config/systemd/user/
+systemctl --user daemon-reload && systemctl --user enable --now aplec-autojoin
 ```
 
 **The bot's Google account.** Anonymous bots work, but the host must admit them
 by hand and Meet labels them as outsiders. For signed-in bots, create a Google
 account for the bot, log it in once through a Vexa browser session (see Vexa's
 documentation on browser sessions; Aplec's patch keeps the session alive), and
-set `FRED_LIVE_BOT_GOOGLE_ACCOUNT` to its address. The watcher then also invites
+set `APLEC_BOT_GOOGLE_ACCOUNT` to its address. The watcher then also invites
 that account to each event, so the bot is a guest of the meeting. To stay
-anonymous, set `FRED_LIVE_AUTOJOIN_AUTHENTICATED=false` and
-`FRED_LIVE_AUTOJOIN_INVITE_BOT=false`.
+anonymous, set `APLEC_AUTOJOIN_AUTHENTICATED=false` and
+`APLEC_AUTOJOIN_INVITE_BOT=false`.
 
 After any reset of the submodule, apply the patch again and rebuild the bot image.
 
@@ -353,7 +353,7 @@ its own environment, which reuses the worker's PyTorch:
 ./scripts/setup_nemotron.sh     # after the worker's .venv exists
 ```
 
-Then set `FRED_LIVE_DIARIZATION_NEMOTRON=true` and restart the worker. If the
+Then set `APLEC_DIARIZATION_NEMOTRON=true` and restart the worker. If the
 combination would cost someone their name, or hears fewer voices than the page
 shows, Aplec keeps pyannote's result for that meeting.
 
@@ -376,15 +376,15 @@ so editing it needs no restart.
   the payload, the transcript, the notes and the model's raw output;
   `latest.json` mirrors the newest one. A failed run leaves `error.json` with the
   traceback, and its card on the site has a Reprocess button.
-- **Retention**: meeting audio is deleted after `FRED_LIVE_RETENTION_DAYS` (15);
+- **Retention**: meeting audio is deleted after `APLEC_RETENTION_DAYS` (15);
   transcripts and notes are kept.
 - **Recovery**: on startup the worker reprocesses runs left unfinished, and every
   6 hours it looks for extension recordings that never produced a run.
 - **Backups**: `data/` and `.env.worker`; with the bot, also `vendor/vexa/.env` and
   Vexa's Postgres volume. Models and builds can be recreated.
-- **Tools**: `python -m fred_live_worker.reprocess --meeting-id <id>` rewrites the
+- **Tools**: `python -m aplec_worker.reprocess --meeting-id <id>` rewrites the
   notes from a stored transcript; `scripts/replay_hook.sh <run>/hook.json` replays a
-  whole meeting through a running worker; `python -m fred_live_worker.ask
+  whole meeting through a running worker; `python -m aplec_worker.ask
   --meeting-id <id> "question"` asks from the command line.
 
 ## 16. Known problems
@@ -406,18 +406,18 @@ so editing it needs no restart.
   interchangeable.
 - **Bot recordings belong to uid 999** (Vexa's container), so retention deletes
   them through `docker exec` into `vexa-meeting-api-1`
-  (`FRED_LIVE_RETENTION_CONTAINER`).
+  (`APLEC_RETENTION_CONTAINER`).
 - **The worker reads `.env.worker` from its working directory**: run it from the
   checkout (the scripts and units do).
 
 ## 17. Security notes
 
-- The worker's internal API takes one shared token (`FRED_LIVE_AUTH_TOKEN`), and
+- The worker's internal API takes one shared token (`APLEC_AUTH_TOKEN`), and
   ownership of meetings is enforced by the web app. Keep the token secret and the
   worker's port closed to the outside.
 - The extension authenticates with a per-person signed token, re-checked against
   the user list on every upload. Bot webhooks are signed with
-  `FRED_LIVE_WEBHOOK_SECRET` and must be fresh (5 minutes).
+  `APLEC_WEBHOOK_SECRET` and must be fresh (5 minutes).
 - Meeting content is rendered with autoescaping, external commands run without a
   shell, and recording paths from webhooks must resolve inside the recordings
   directory.

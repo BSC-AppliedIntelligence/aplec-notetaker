@@ -10,8 +10,8 @@ POSTs a previously saved Vexa "meeting.completed" payload back to the running wo
 triggering a full re-process (ASR + LLM) of the underlying recording.
 
 Env:
-  FRED_LIVE_WORKER_URL  Base URL of the worker (default: http://127.0.0.1:18088)
-  FRED_LIVE_AUTH_TOKEN  Auth token (default: read from .env.worker if present)
+  APLEC_WORKER_URL  Base URL of the worker (default: http://127.0.0.1:18088)
+  APLEC_AUTH_TOKEN  Auth token (default: read from .env.worker if present)
 
 Example:
   scripts/replay_hook.sh data/meetings/2/20260415T190607Z/hook.json
@@ -24,24 +24,24 @@ if [[ ! -f "$HOOK_FILE" ]]; then
   exit 1
 fi
 
-WORKER_URL="${FRED_LIVE_WORKER_URL:-http://127.0.0.1:18088}"
+WORKER_URL="${APLEC_WORKER_URL:-http://127.0.0.1:18088}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TOKEN="${FRED_LIVE_AUTH_TOKEN:-}"
+TOKEN="${APLEC_AUTH_TOKEN:-}"
 if [[ -z "$TOKEN" && -f "$ROOT_DIR/.env.worker" ]]; then
-  TOKEN="$(grep -E '^FRED_LIVE_AUTH_TOKEN=' "$ROOT_DIR/.env.worker" | head -n1 | cut -d= -f2-)"
+  TOKEN="$(grep -E '^APLEC_AUTH_TOKEN=' "$ROOT_DIR/.env.worker" | head -n1 | cut -d= -f2-)"
 fi
 
 CURL_AUTH=()
 if [[ -n "$TOKEN" ]]; then
-  CURL_AUTH=(-H "X-Fred-Live-Token: $TOKEN")
+  CURL_AUTH=(-H "X-Aplec-Token: $TOKEN")
 fi
 
 # Sign the payload like Vexa does (HMAC-SHA256 over "{ts}.{body}") when the
-# worker enforces FRED_LIVE_WEBHOOK_SECRET.
-SECRET="${FRED_LIVE_WEBHOOK_SECRET:-}"
+# worker enforces APLEC_WEBHOOK_SECRET.
+SECRET="${APLEC_WEBHOOK_SECRET:-}"
 if [[ -z "$SECRET" && -f "$ROOT_DIR/.env.worker" ]]; then
-  SECRET="$(grep -E '^FRED_LIVE_WEBHOOK_SECRET=' "$ROOT_DIR/.env.worker" | head -n1 | cut -d= -f2-)"
+  SECRET="$(grep -E '^APLEC_WEBHOOK_SECRET=' "$ROOT_DIR/.env.worker" | head -n1 | cut -d= -f2-)"
 fi
 CURL_SIG=()
 if [[ -n "$SECRET" ]]; then
