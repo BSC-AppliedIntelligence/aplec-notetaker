@@ -94,9 +94,5 @@ llama.cpp, MIT; Vexa, Apache-2.0).
 
 ## Acknowledgements
 
-This work is funded by the Ministerio para la Transformación Digital y de la Función
-Pública and Plan de Recuperación, Transformación y Resiliencia - Funded by
-EU – NextGenerationEU within the framework of the project Desarrollo Modelos ALIA.
-
-This work has been promoted and financed by the Government of Catalonia through the
+This work has been financed by the Government of Catalonia through the
 [Aina Project](https://projecteaina.cat/).
