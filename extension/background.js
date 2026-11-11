@@ -119,17 +119,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
 // when the extension is installed, updated, or reloaded. Field test: a Meet
 // tab from before the reload has no content script, so no call detection, no
 // speaker names, no title. Inject into existing Meet tabs ourselves.
-// A notice text that an earlier version offered as the default is the default,
-// not the user's choice: a stored copy of it follows the default when it changes.
-const NOTICE_OLD_DEFAULTS = [
-  "🔴 Fred Notetaker is recording this meeting to produce notes. · Fred Notetaker está grabando esta reunión para generar notas.",
-];
-
 chrome.runtime.onInstalled.addListener(async () => {
-  try {
-    const { noticeText } = await chrome.storage.local.get("noticeText");
-    if (NOTICE_OLD_DEFAULTS.includes(noticeText)) await chrome.storage.local.remove("noticeText");
-  } catch (e) {}
   try {
     const tabs = await chrome.tabs.query({
       url: [
@@ -199,7 +189,7 @@ async function recordUploadFailure() {
   const becameDegraded = !s.degraded && fails >= 2; // debounce single blips
   await chrome.storage.session.set({ netDegraded: s.degraded || becameDegraded, netFails: fails });
   if (becameDegraded) {
-    chrome.notifications.create("fred-net-down", {
+    chrome.notifications.create("aplec-net-down", {
       type: "basic", iconUrl: "icons/aplec128.png",
       title: "Aplec: connection lost",
       message: "Can't reach the server (VPN?). Recording continues; audio is buffered and will catch up.",
@@ -217,7 +207,7 @@ async function recordUploadSuccess(queuedBefore) {
   if (queuedBefore <= 1) {
     // buffer fully drained: recovery is real, not the first lucky packet
     await chrome.storage.session.set({ netDegraded: false, netFails: 0, netDelivered: 0 });
-    chrome.notifications.create("fred-net-up", {
+    chrome.notifications.create("aplec-net-up", {
       type: "basic", iconUrl: "icons/aplec128.png",
       title: "Aplec: caught up",
       message: `Connection is back; ${delivered} buffered chunk(s) delivered.`,
@@ -248,10 +238,10 @@ function refreshBadge() {
 // Unpacked extensions never auto-update, and a stale content script fails
 // QUIETLY (old selectors -> recordings without speaker names). The server
 // publishes the downloadable zip's version next to the zip itself
-// (/static/fred-extension-version.json, written by package_extension.sh, so
+// (/static/aplec-extension-version.json, written by package_extension.sh, so
 // advertised === downloadable always); we poll it every few hours and badge
 // "NEW" + notify once per version. Recording state always outranks the badge.
-const UPDATE_CHECK_ALARM = "fred-update-check";
+const UPDATE_CHECK_ALARM = "aplec-update-check";
 let updateAvailableVersion = null; // cached across SW wakeups via storage
 chrome.storage.local.get("updateAvailableVersion").then((v) => {
   updateAvailableVersion = v.updateAvailableVersion || null;
@@ -274,7 +264,7 @@ async function checkForUpdate() {
   if (!workerUrl) return;
   let latest;
   try {
-    const r = await fetch(`${workerUrl.replace(/\/$/, "")}/static/fred-extension-version.json`,
+    const r = await fetch(`${workerUrl.replace(/\/$/, "")}/static/aplec-extension-version.json`,
                           { cache: "no-store" });
     if (!r.ok) return; // direct-worker dev setups have no /static: stay quiet
     latest = String((await r.json()).version || "");
@@ -342,7 +332,7 @@ function notifyNoticeOutcome(status, reason) {
   } else if (status === "disabled") {
     notify("Aplec is recording", "The automatic chat notice is off in Aplec's Options. Let participants know you're recording.");
   } else {
-    chrome.notifications.create("fred-notice-failed", {
+    chrome.notifications.create("aplec-notice-failed", {
       type: "basic", iconUrl: "icons/aplec128.png", priority: 2,
       title: "Aplec is recording — please tell participants",
       message: status === "unsupported"
@@ -372,7 +362,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           state.lastCallHeartbeatMs = Date.now();
         }
         if (first && msg.transition && !state.capturing) {
-          chrome.notifications.create(`fred-call-${sender.tab.id}`, {
+          chrome.notifications.create(`aplec-call-${sender.tab.id}`, {
             type: "basic",
             iconUrl: "icons/aplec128.png",
             title: "Aplec noticed a meeting",
@@ -514,7 +504,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const fatal = status >= 400 && status < 500 && status !== 408 && status !== 429;
           if (fatal) {
             console.warn("chunk upload permanently refused", status, e);
-            chrome.notifications.create("fred-upload-fatal", {
+            chrome.notifications.create("aplec-upload-fatal", {
               type: "basic", iconUrl: "icons/aplec128.png",
               title: "Aplec: upload refused",
               message: `The server refused audio (HTTP ${status}). Check your token / session limits.`,
@@ -539,7 +529,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       } catch (e) {}
       if (msg.sessionId && msg.sessionId === pendingFinishSid) {
         state.lastDrainHeartbeatMs = Date.now();
-        chrome.alarms.create(`fred-finish-${msg.sessionId}`, { delayInMinutes: 0.5 });
+        chrome.alarms.create(`aplec-finish-${msg.sessionId}`, { delayInMinutes: 0.5 });
       }
       sendResponse({});
     } else if (msg.type === "offscreen-stopped") {
@@ -707,7 +697,7 @@ async function stopCapture(reason) {
       pendingFinishAnchorMs: state.recordingStartMs,
     });
   } catch (e) {}
-  chrome.alarms.create(`fred-finish-${sessionId}`, { delayInMinutes: 0.5 });
+  chrome.alarms.create(`aplec-finish-${sessionId}`, { delayInMinutes: 0.5 });
   try {
     await chrome.runtime.sendMessage({ type: "offscreen-stop", sessionId });
     // finishSession runs when the offscreen doc confirms the last chunk went out.
@@ -719,9 +709,9 @@ async function stopCapture(reason) {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === UPDATE_CHECK_ALARM) return checkForUpdate();
-  if (!alarm.name.startsWith("fred-finish-")) return;
+  if (!alarm.name.startsWith("aplec-finish-")) return;
   await restored;
-  const sessionId = alarm.name.slice("fred-finish-".length);
+  const sessionId = alarm.name.slice("aplec-finish-".length);
   const { pendingFinish } = await chrome.storage.session.get("pendingFinish");
   if (pendingFinish === sessionId) {
     console.warn("offscreen never confirmed stop; force-finishing", sessionId);
@@ -757,7 +747,7 @@ async function finishSession(sessionId) {
       ["pendingFinish", "pendingFinishTabId", "pendingFinishAnchorMs"]
     );
   } catch (e) {}
-  chrome.alarms.clear(`fred-finish-${sessionId}`).catch?.(() => {});
+  chrome.alarms.clear(`aplec-finish-${sessionId}`).catch?.(() => {});
   try {
     const result = await api(`/capture/${sessionId}/finish`, { method: "POST" });
     if (result && result.status === "accepted") {

@@ -74,8 +74,6 @@ unzip -l "$STATIC/aplec-extension-store.zip" | grep -qE ' manifest\.json$' || {
 # badge when the build the site offers is newer than theirs.
 printf '{"version": "%s", "packaged_at": "%s"}\n' "$VERSION" "$(date -u +%FT%TZ)" \
   > "$STATIC/aplec-extension-version.json"
-# Extensions up to 0.4.0 poll the marker under its name from before the rename.
-cp "$STATIC/aplec-extension-version.json" "$STATIC/fred-extension-version.json"
 
 echo "packaged v$VERSION for $ORIGIN:"
 echo "  $STATIC/aplec-extension.zip        ($(du -h "$STATIC/aplec-extension.zip" | cut -f1))  Settings download, load unpacked"

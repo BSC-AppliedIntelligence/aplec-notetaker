@@ -13,10 +13,7 @@ from .config import WebSettings, WebUser
 logger = logging.getLogger(__name__)
 
 SESSION_COOKIE = "aplec_session"
-# Sessions signed by earlier versions (another cookie name and salt) stay
-# valid until they expire, so nobody has to sign in again.
-LEGACY_SESSION_COOKIE = "fred_session"
-_SALT, _LEGACY_SALT = "aplec-notetaker-web", "fred-live-web"
+_SALT = "aplec-notetaker-web"
 
 
 @dataclass(frozen=True)
@@ -52,23 +49,17 @@ def issue_session(settings: WebSettings, response, user: WebUser, name: str | No
 
 def clear_session(response) -> None:
     response.delete_cookie(SESSION_COOKIE)
-    response.delete_cookie(LEGACY_SESSION_COOKIE)
 
 
 def current_user(settings: WebSettings, request: Request) -> SessionUser | None:
     """Resolve the session cookie against the CURRENT allowlist — removing an
     email from APLEC_WEB_USERS revokes access on the next request."""
-    token = request.cookies.get(SESSION_COOKIE) or request.cookies.get(LEGACY_SESSION_COOKIE)
+    token = request.cookies.get(SESSION_COOKIE)
     if not token:
         return None
-    data = None
-    for salt in (_SALT, _LEGACY_SALT):
-        try:
-            data = _serializer(settings, salt).loads(token, max_age=settings.session_max_age_seconds)
-            break
-        except (BadSignature, SignatureExpired):
-            continue
-    if data is None:
+    try:
+        data = _serializer(settings).loads(token, max_age=settings.session_max_age_seconds)
+    except (BadSignature, SignatureExpired):
         return None
     email = str(data.get("email", "")).lower()
     mapped = settings.user_map().get(email)

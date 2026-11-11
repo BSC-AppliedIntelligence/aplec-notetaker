@@ -10,8 +10,8 @@
 // tabs that were already open at install/update time (Chrome never does that
 // itself), and a second injection into the same world must be a no-op.
 (() => {
-if (globalThis.__fredContentLoaded) return;
-globalThis.__fredContentLoaded = true;
+if (globalThis.__aplecContentLoaded) return;
+globalThis.__aplecContentLoaded = true;
 
 // ---------------------------------------------------------------- adapters
 
@@ -132,7 +132,7 @@ const TEAMS = {
     // Remember it per tab — sessionStorage survives the SPA navigation — and
     // keep answering with it. When even the join URL never carried it, the
     // worker falls back to the meeting title (see capture.py resume_key).
-    const KEY = "fred_teams_meeting_id";
+    const KEY = "aplec_teams_meeting_id";
     const href = decodeURIComponent(location.href);
     const enterprise = href.match(/19:meeting_[A-Za-z0-9_-]+@thread\.v2/);
     const consumer = href.match(/teams\.live\.com\/meet\/(\d{6,16})/);

@@ -40,8 +40,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 CAPTURE_TOKEN_SALT = "aplec-capture"
-# Tokens minted by earlier versions are already pasted into extensions.
-LEGACY_CAPTURE_TOKEN_SALTS = ("fred-capture",)
 # Left and right of what the extension records (v0.3.14+).
 MIC_AND_TAB = ["mic", "tab"]
 MAX_CHUNK_BYTES = 32 * 1024 * 1024
@@ -66,13 +64,9 @@ def mint_capture_token(secret: str, vexa_user_id: int, email: str) -> str:
 def verify_capture_token(secret: str, token: str) -> dict | None:
     from itsdangerous import BadSignature, URLSafeSerializer
 
-    for salt in (CAPTURE_TOKEN_SALT, *LEGACY_CAPTURE_TOKEN_SALTS):
-        try:
-            data = URLSafeSerializer(secret, salt=salt).loads(token)
-            break
-        except BadSignature:
-            continue
-    else:
+    try:
+        data = URLSafeSerializer(secret, salt=CAPTURE_TOKEN_SALT).loads(token)
+    except BadSignature:
         return None
     if not isinstance(data, dict) or "uid" not in data:
         return None
