@@ -1,12 +1,17 @@
-# Fred Notetaker
+# Aplec Notetaker
 
-Self-hosted meeting notes for a team. Fred records Google Meet, Microsoft Teams and
+Self-hosted meeting notes for a team. Aplec records Google Meet, Microsoft Teams and
 Zoom calls, transcribes them on your own GPU, names the speakers, and writes
 structured notes (summary, decisions, action items with owners, open questions)
 with the language model of your choice: an open-weights model on the same
 machine, or any OpenAI-compatible API, your own server or a hosted one. Audio is
 always processed on your machine; with a hosted model, the transcripts go to
 that provider.
+
+Aplec Notetaker takes its name from the Catalan *aplec*, a gathering (from
+*aplegar*, to gather). It was called Fred Notetaker until November 2026, and
+internal names keep the old one: the `fred_live_worker` and `fred_live_web`
+packages, the `FRED_LIVE_*` settings and the `fred-*` service units.
 
 ## What it does
 
@@ -46,7 +51,7 @@ The full guide, from an empty machine to a working team deployment, is
 [docs/INSTALL.md](docs/INSTALL.md). In short:
 
 ```bash
-git clone https://github.com/BSC-AppliedIntelligence/fred-notetaker.git && cd fred-notetaker
+git clone https://github.com/BSC-AppliedIntelligence/aplec-notetaker.git && cd aplec-notetaker
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.worker.txt -r requirements.web.txt && pip uninstall -y torchcodec
 git clone https://github.com/ggml-org/whisper.cpp vendor/whisper.cpp
@@ -89,7 +94,7 @@ docs/               installation, extension publishing, privacy policy template
 
 Apache License 2.0, see [LICENSE](LICENSE). Bundled fonts, icons and scripts keep
 their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md),
-as do the models Fred downloads and the projects it builds on (whisper.cpp and
+as do the models Aplec downloads and the projects it builds on (whisper.cpp and
 llama.cpp, MIT; Vexa, Apache-2.0).
 
 ## Acknowledgements

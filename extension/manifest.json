@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Fred: meeting notes without the bot",
-  "version": "0.3.14",
-  "description": "Records Meet, Teams and Zoom calls in your browser and sends them to your team's self-hosted Fred for notes with speaker names.",
+  "name": "Aplec: meeting notes without the bot",
+  "version": "0.4.0",
+  "description": "Records Meet, Teams and Zoom calls in your browser and sends them to your team's self-hosted Aplec for notes with speaker names.",
   "permissions": [
     "tabCapture",
     "offscreen",
@@ -19,7 +19,7 @@
     "http://localhost:18088/*",
     "http://127.0.0.1:18088/*",
     "http://localhost:18091/*",
-    "https://fred.example.org/*"
+    "https://aplec.example.org/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -40,12 +40,12 @@
     }
   ],
   "action": {
-    "default_title": "Fred: click to record this meeting"
+    "default_title": "Aplec: click to record this meeting"
   },
   "options_page": "options.html",
   "icons": {
-    "16": "icons/fred16.png",
-    "48": "icons/fred48.png",
-    "128": "icons/fred128.png"
+    "16": "icons/aplec16.png",
+    "48": "icons/aplec48.png",
+    "128": "icons/aplec128.png"
   }
 }

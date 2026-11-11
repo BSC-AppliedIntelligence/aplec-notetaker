@@ -19,7 +19,7 @@ async function loadConfig() {
 // The production deployment: the web app's hostname proxies /capture/* to the
 // worker, so the site URL is the worker URL. Dev setups (SSH tunnel straight
 // to the worker) type http://localhost:18088 over it.
-const DEFAULT_WORKER_URL = "https://fred.example.org";  // the site, written in by scripts/package_extension.sh
+const DEFAULT_WORKER_URL = "https://aplec.example.org";  // the site, written in by scripts/package_extension.sh
 
 loadConfig().then(({ workerUrl, captureToken }) => {
   $("workerUrl").value = workerUrl || DEFAULT_WORKER_URL;
@@ -85,7 +85,7 @@ $("grantMic").addEventListener("click", async () => {
 // Keep in sync with CHAT_DEFAULTS in content.js and NOTICE_DEFAULT_TEXT in background.js.
 const CHAT_DEFAULTS = {
   noticeEnabled: true,
-  noticeText: "🔴 Fred Notetaker is recording this meeting to produce notes. · Fred Notetaker está grabando esta reunión para generar notas.",
+  noticeText: "🔴 Aplec Notetaker is recording this meeting to produce notes. · Aplec Notetaker está grabando esta reunión para generar notas.",
   chatCapture: true,
 };
 

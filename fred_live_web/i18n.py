@@ -90,7 +90,7 @@ def format_datetime_day(dt: datetime | None, lang: str | None) -> str:
 # throughout, «» for quotes, the way Spanish and Catalan software writes them.
 CATALOG: dict[str, tuple[str, str]] = {
     # --- shared: navigation, dates, buttons -------------------------------------
-    "Fred Notetaker home": ("Inicio de Fred Notetaker", "Inici de Fred Notetaker"),
+    "Aplec Notetaker home": ("Inicio de Aplec Notetaker", "Inici d'Aplec Notetaker"),
     "Users": ("Usuarios", "Usuaris"),
     "Voiceprints": ("Huellas de voz", "Empremtes de veu"),
     "Settings": ("Ajustes", "Configuració"),
@@ -109,7 +109,7 @@ CATALOG: dict[str, tuple[str, str]] = {
 
     # --- sign-in pages ------------------------------------------------------------
     "Sign in": ("Iniciar sesión", "Inicia la sessió"),
-    "Welcome to Fred": ("Te damos la bienvenida a Fred", "Et donem la benvinguda a Fred"),
+    "Welcome to Aplec": ("Te damos la bienvenida a Aplec", "Et donem la benvinguda a Aplec"),
     "Your meetings, transcribed, summarized and searchable, processed entirely on your own hardware.": (
         "Tus reuniones, transcritas, resumidas y con búsqueda, procesadas por completo en tu propio hardware.",
         "Les teves reunions, transcrites, resumides i amb cerca, processades del tot al teu propi maquinari.",
@@ -124,15 +124,15 @@ CATALOG: dict[str, tuple[str, str]] = {
         "Defineix <code>GOOGLE_OAUTH_CLIENT_ID</code> / <code>GOOGLE_OAUTH_CLIENT_SECRET</code> per activar-lo.",
     ),
     "Continue as {user}": ("Continuar como {user}", "Continua com a {user}"),
-    "Fred Notetaker · self-hosted meeting notes": (
-        "Fred Notetaker · notas de reuniones en tu propio servidor",
-        "Fred Notetaker · notes de reunions al teu propi servidor",
+    "Aplec Notetaker · self-hosted meeting notes": (
+        "Aplec Notetaker · notas de reuniones en tu propio servidor",
+        "Aplec Notetaker · notes de reunions al teu propi servidor",
     ),
     "Access denied": ("Acceso denegado", "Accés denegat"),
     "Not on the list": ("No estás en la lista", "No ets a la llista"),
-    "<strong>{email}</strong> isn’t allowed to access this Fred instance.": (
-        "<strong>{email}</strong> no tiene permiso para acceder a esta instancia de Fred.",
-        "<strong>{email}</strong> no té permís per accedir a aquesta instància de Fred.",
+    "<strong>{email}</strong> isn’t allowed to access this Aplec instance.": (
+        "<strong>{email}</strong> no tiene permiso para acceder a esta instancia de Aplec.",
+        "<strong>{email}</strong> no té permís per accedir a aquesta instància d'Aplec.",
     ),
     "Your account isn’t allowed here.": ("Tu cuenta no tiene acceso aquí.", "El teu compte no hi té accés."),
     "Ask the administrator to add you to <code>FRED_LIVE_WEB_USERS</code>.": (
@@ -166,23 +166,23 @@ CATALOG: dict[str, tuple[str, str]] = {
     # --- onboarding ---------------------------------------------------------------
     "Welcome": ("Bienvenida", "Benvinguda"),
     "Welcome, {name}!": ("¡Hola, {name}!", "Hola, {name}!"),
-    "One step left: connect your Google Calendar and Fred will join your meetings automatically, record them, and turn them into notes, action items and answers.": (
-        "Solo falta un paso: conecta tu Google Calendar y Fred se unirá a tus reuniones automáticamente, las grabará y las convertirá en notas, tareas y respuestas.",
-        "Només falta un pas: connecta el teu Google Calendar i Fred s'unirà a les teves reunions automàticament, les gravarà i les convertirà en notes, tasques i respostes.",
+    "One step left: connect your Google Calendar and Aplec will join your meetings automatically, record them, and turn them into notes, action items and answers.": (
+        "Solo falta un paso: conecta tu Google Calendar y Aplec se unirá a tus reuniones automáticamente, las grabará y las convertirá en notas, tareas y respuestas.",
+        "Només falta un pas: connecta el teu Google Calendar i Aplec s'unirà a les teves reunions automàticament, les gravarà i les convertirà en notes, tasques i respostes.",
     ),
-    "<strong>Connect your calendar</strong>: Fred sees your upcoming Google Meet events": (
-        "<strong>Conecta tu calendario</strong>: Fred ve tus próximos eventos de Google Meet",
-        "<strong>Connecta el teu calendari</strong>: Fred veu els teus propers esdeveniments de Google Meet",
+    "<strong>Connect your calendar</strong>: Aplec sees your upcoming Google Meet events": (
+        "<strong>Conecta tu calendario</strong>: Aplec ve tus próximos eventos de Google Meet",
+        "<strong>Connecta el teu calendari</strong>: Aplec veu els teus propers esdeveniments de Google Meet",
     ),
-    "<strong>Fred joins by itself</strong>: invited &amp; signed in, moments before each meeting starts": (
-        "<strong>Fred se une solo</strong>: invitado y con sesión iniciada, momentos antes de que empiece cada reunión",
-        "<strong>Fred s'hi uneix sol</strong>: convidat i amb la sessió iniciada, uns moments abans que comenci cada reunió",
+    "<strong>Aplec joins by itself</strong>: invited &amp; signed in, moments before each meeting starts": (
+        "<strong>Aplec se une solo</strong>: invitado y con sesión iniciada, momentos antes de que empiece cada reunión",
+        "<strong>Aplec s'hi uneix sol</strong>: convidat i amb la sessió iniciada, uns moments abans que comenci cada reunió",
     ),
     "<strong>Notes appear here</strong>: summary, action items, transcript, and a chat that answers from the meeting": (
         "<strong>Las notas aparecen aquí</strong>: resumen, tareas, transcripción y un chat que responde a partir de la reunión",
         "<strong>Les notes apareixen aquí</strong>: resum, tasques, transcripció i un xat que respon a partir de la reunió",
     ),
-    "Which meetings should Fred join?": ("¿A qué reuniones debe unirse Fred?", "A quines reunions s'ha d'unir Fred?"),
+    "Which meetings should Aplec join?": ("¿A qué reuniones debe unirse Aplec?", "A quines reunions s'ha d'unir Aplec?"),
     "Language for your meeting notes": ("Idioma de las notas de tus reuniones", "Idioma de les notes de les teves reunions"),
     "Connect Google Calendar": ("Conectar Google Calendar", "Connecta Google Calendar"),
     "Skip for now": ("Ahora no", "Ara no"),
@@ -194,13 +194,13 @@ CATALOG: dict[str, tuple[str, str]] = {
     "{n} meeting matching “{q}”": ("{n} reunión que coincide con «{q}»", "{n} reunió que coincideix amb «{q}»"),
     "{n} meetings matching “{q}”": ("{n} reuniones que coinciden con «{q}»", "{n} reunions que coincideixen amb «{q}»"),
     "Search meetings…": ("Buscar reuniones…", "Cerca reunions…"),
-    "Calendar connected. Fred will join your upcoming Google Meet events automatically and their notes will appear here.": (
-        "Calendario conectado. Fred se unirá automáticamente a tus próximos eventos de Google Meet y sus notas aparecerán aquí.",
-        "Calendari connectat. Fred s'unirà automàticament als teus propers esdeveniments de Google Meet i les seves notes apareixeran aquí.",
+    "Calendar connected. Aplec will join your upcoming Google Meet events automatically and their notes will appear here.": (
+        "Calendario conectado. Aplec se unirá automáticamente a tus próximos eventos de Google Meet y sus notas aparecerán aquí.",
+        "Calendari connectat. Aplec s'unirà automàticament als teus propers esdeveniments de Google Meet i les seves notes apareixeran aquí.",
     ),
-    "<strong>Connect your Google Calendar</strong> so Fred can join your meetings automatically and take notes.": (
-        "<strong>Conecta tu Google Calendar</strong> para que Fred se una a tus reuniones automáticamente y tome notas.",
-        "<strong>Connecta el teu Google Calendar</strong> perquè Fred s'uneixi a les teves reunions automàticament i prengui notes.",
+    "<strong>Connect your Google Calendar</strong> so Aplec can join your meetings automatically and take notes.": (
+        "<strong>Conecta tu Google Calendar</strong> para que Aplec se una a tus reuniones automáticamente y tome notas.",
+        "<strong>Connecta el teu Google Calendar</strong> perquè Aplec s'uneixi a les teves reunions automàticament i prengui notes.",
     ),
     "Connect calendar": ("Conectar calendario", "Connecta el calendari"),
     "Filter by platform": ("Filtrar por plataforma", "Filtra per plataforma"),
@@ -214,15 +214,15 @@ CATALOG: dict[str, tuple[str, str]] = {
     "No meetings on {platform}.": ("No hay reuniones de {platform}.", "No hi ha reunions de {platform}."),
     "Try clearing the filter.": ("Prueba a quitar el filtro.", "Prova de treure el filtre."),
     "No meetings yet": ("Aún no hay reuniones", "Encara no hi ha reunions"),
-    "Fred joins your Google Calendar meetings automatically and the notes appear here minutes after the call ends.": (
-        "Fred se une automáticamente a las reuniones de tu Google Calendar y las notas aparecen aquí pocos minutos después de que termine la llamada.",
-        "Fred s'uneix automàticament a les reunions del teu Google Calendar i les notes apareixen aquí pocs minuts després que acabi la trucada.",
+    "Aplec joins your Google Calendar meetings automatically and the notes appear here minutes after the call ends.": (
+        "Aplec se une automáticamente a las reuniones de tu Google Calendar y las notas aparecen aquí pocos minutos después de que termine la llamada.",
+        "Aplec s'uneix automàticament a les reunions del teu Google Calendar i les notes apareixen aquí pocs minuts després que acabi la trucada.",
     ),
     "Shared": ("Compartida", "Compartida"),
     "Processing": ("Procesando", "Processant"),
-    "Fred is transcribing and summarizing this meeting. It appears here automatically.": (
-        "Fred está transcribiendo y resumiendo esta reunión. Aparecerá aquí automáticamente.",
-        "Fred està transcrivint i resumint aquesta reunió. Apareixerà aquí automàticament.",
+    "Aplec is transcribing and summarizing this meeting. It appears here automatically.": (
+        "Aplec está transcribiendo y resumiendo esta reunión. Aparecerá aquí automáticamente.",
+        "Aplec està transcrivint i resumint aquesta reunió. Apareixerà aquí automàticament.",
     ),
     "Failed": ("Error", "Error"),
     "Reprocess": ("Reprocesar", "Reprocessa"),
@@ -241,21 +241,21 @@ CATALOG: dict[str, tuple[str, str]] = {
     "Copy notes": ("Copiar notas", "Copia les notes"),
     "Copy failed": ("No se ha podido copiar", "No s'ha pogut copiar"),
     "Transcript": ("Transcripción", "Transcripció"),
-    "No speech was detected in this recording. Fred was probably alone in the call.": (
-        "No se ha detectado voz en esta grabación. Probablemente Fred estaba solo en la llamada.",
-        "No s'ha detectat veu en aquesta gravació. Probablement Fred era sol a la trucada.",
+    "No speech was detected in this recording. Aplec was probably alone in the call.": (
+        "No se ha detectado voz en esta grabación. Probablemente Aplec estaba solo en la llamada.",
+        "No s'ha detectat veu en aquesta gravació. Probablement Aplec era sol a la trucada.",
     ),
-    "Fred could not post the recording notice in the meeting chat ({reason}).": (
-        "Fred no ha podido publicar el aviso de grabación en el chat de la reunión ({reason}).",
-        "Fred no ha pogut publicar l'avís de gravació al xat de la reunió ({reason}).",
+    "Aplec could not post the recording notice in the meeting chat ({reason}).": (
+        "Aplec no ha podido publicar el aviso de grabación en el chat de la reunión ({reason}).",
+        "Aplec no ha pogut publicar l'avís de gravació al xat de la reunió ({reason}).",
     ),
-    "Fred could not post the recording notice in the meeting chat.": (
-        "Fred no ha podido publicar el aviso de grabación en el chat de la reunión.",
-        "Fred no ha pogut publicar l'avís de gravació al xat de la reunió.",
+    "Aplec could not post the recording notice in the meeting chat.": (
+        "Aplec no ha podido publicar el aviso de grabación en el chat de la reunión.",
+        "Aplec no ha pogut publicar l'avís de gravació al xat de la reunió.",
     ),
-    "This meeting’s page had no chat Fred could post the recording notice to.": (
-        "La página de esta reunión no tenía un chat donde Fred pudiera publicar el aviso de grabación.",
-        "La pàgina d'aquesta reunió no tenia cap xat on Fred pogués publicar l'avís de gravació.",
+    "This meeting’s page had no chat Aplec could post the recording notice to.": (
+        "La página de esta reunión no tenía un chat donde Aplec pudiera publicar el aviso de grabación.",
+        "La pàgina d'aquesta reunió no tenia cap xat on Aplec pogués publicar l'avís de gravació.",
     ),
     "Participants may not have been told.": (
         "Puede que los participantes no lo sepan.",
@@ -279,9 +279,9 @@ CATALOG: dict[str, tuple[str, str]] = {
         "Tú y el administrador siempre podéis ver esta reunión.",
         "Tu i l'administrador sempre podeu veure aquesta reunió.",
     ),
-    "People below were given read access (notes, transcript, ask): they cannot reprocess, rename speakers, or re-share. Team shares add the team's <em>current</em> members; someone joining the team later does not gain access to this meeting. Colleagues Fred recognized by voice are added automatically (turn that off in Settings); anyone you remove stays removed.": (
-        "Las personas de abajo tienen acceso de lectura (notas, transcripción y preguntas): no pueden reprocesar, renombrar hablantes ni volver a compartir. Compartir con un equipo añade a sus miembros <em>actuales</em>; quien se una al equipo más tarde no tendrá acceso a esta reunión. Los compañeros que Fred reconoce por la voz se añaden automáticamente (puedes desactivarlo en Ajustes); a quien quites, no se le vuelve a añadir.",
-        "Les persones de sota tenen accés de lectura (notes, transcripció i preguntes): no poden reprocessar, canviar el nom dels parlants ni tornar a compartir. Compartir amb un equip afegeix els seus membres <em>actuals</em>; qui s'uneixi a l'equip més endavant no tindrà accés a aquesta reunió. Els companys que Fred reconeix per la veu s'afegeixen automàticament (ho pots desactivar a Configuració); a qui treguis, no se'l torna a afegir.",
+    "People below were given read access (notes, transcript, ask): they cannot reprocess, rename speakers, or re-share. Team shares add the team's <em>current</em> members; someone joining the team later does not gain access to this meeting. Colleagues Aplec recognized by voice are added automatically (turn that off in Settings); anyone you remove stays removed.": (
+        "Las personas de abajo tienen acceso de lectura (notas, transcripción y preguntas): no pueden reprocesar, renombrar hablantes ni volver a compartir. Compartir con un equipo añade a sus miembros <em>actuales</em>; quien se una al equipo más tarde no tendrá acceso a esta reunión. Los compañeros que Aplec reconoce por la voz se añaden automáticamente (puedes desactivarlo en Ajustes); a quien quites, no se le vuelve a añadir.",
+        "Les persones de sota tenen accés de lectura (notes, transcripció i preguntes): no poden reprocessar, canviar el nom dels parlants ni tornar a compartir. Compartir amb un equip afegeix els seus membres <em>actuals</em>; qui s'uneixi a l'equip més endavant no tindrà accés a aquesta reunió. Els companys que Aplec reconeix per la veu s'afegeixen automàticament (ho pots desactivar a Configuració); a qui treguis, no se'l torna a afegir.",
     ),
     "recognized voice": ("voz reconocida", "veu reconeguda"),
     "Shared {date} by {who}": ("Compartida el {date} por {who}", "Compartida el {date} per {who}"),
@@ -301,7 +301,7 @@ CATALOG: dict[str, tuple[str, str]] = {
     "Meeting chat · {n} messages": ("Chat de la reunión · {n} mensajes", "Xat de la reunió · {n} missatges"),
     "Transcript · {n} turn": ("Transcripción · {n} intervención", "Transcripció · {n} intervenció"),
     "Transcript · {n} turns": ("Transcripción · {n} intervenciones", "Transcripció · {n} intervencions"),
-    "Ask Fred": ("Pregunta a Fred", "Pregunta a Fred"),
+    "Ask Aplec": ("Pregunta a Aplec", "Pregunta a Aplec"),
     "Questions are answered strictly from this meeting.": (
         "Las respuestas salen solo de esta reunión.",
         "Les respostes surten només d'aquesta reunió.",
@@ -330,40 +330,40 @@ CATALOG: dict[str, tuple[str, str]] = {
     "Only the owner can share": ("Solo el propietario puede compartir", "Només el propietari pot compartir"),
 
     # --- settings -----------------------------------------------------------------
-    "Calendar connected. Fred now joins your meetings automatically.": (
-        "Calendario conectado. Ahora Fred se une a tus reuniones automáticamente.",
-        "Calendari connectat. Ara Fred s'uneix a les teves reunions automàticament.",
+    "Calendar connected. Aplec now joins your meetings automatically.": (
+        "Calendario conectado. Ahora Aplec se une a tus reuniones automáticamente.",
+        "Calendari connectat. Ara Aplec s'uneix a les teves reunions automàticament.",
     ),
     "Google didn’t issue a long-lived token. Try connecting again, and complete the consent screen fully.": (
         "Google no ha emitido un token de larga duración. Vuelve a conectar y completa la pantalla de consentimiento entera.",
         "Google no ha emès un token de llarga durada. Torna a connectar i completa la pantalla de consentiment sencera.",
     ),
     "Connected as <strong>{account}</strong>": ("Conectado como <strong>{account}</strong>", "Connectat com a <strong>{account}</strong>"),
-    "Fred watches this calendar, invites the notetaker to your Google Meet events and joins them automatically a moment before they start.": (
-        "Fred vigila este calendario, invita al notetaker a tus eventos de Google Meet y se une automáticamente un momento antes de que empiecen.",
-        "Fred vigila aquest calendari, convida el notetaker als teus esdeveniments de Google Meet i s'hi uneix automàticament un moment abans que comencin.",
+    "Aplec watches this calendar, invites the notetaker to your Google Meet events and joins them automatically a moment before they start.": (
+        "Aplec vigila este calendario, invita al notetaker a tus eventos de Google Meet y se une automáticamente un momento antes de que empiecen.",
+        "Aplec vigila aquest calendari, convida el notetaker als teus esdeveniments de Google Meet i s'hi uneix automàticament un moment abans que comencin.",
     ),
     "Disconnect": ("Desconectar", "Desconnecta"),
     "Not connected": ("Sin conectar", "Sense connectar"),
-    "Connect your Google Calendar so Fred can join your meetings automatically and take notes. You’ll be asked to allow access to your calendar events, which is all Fred needs.": (
-        "Conecta tu Google Calendar para que Fred se una a tus reuniones automáticamente y tome notas. Se te pedirá acceso a los eventos de tu calendario, que es todo lo que Fred necesita.",
-        "Connecta el teu Google Calendar perquè Fred s'uneixi a les teves reunions automàticament i prengui notes. Se't demanarà accés als esdeveniments del teu calendari, que és tot el que Fred necessita.",
+    "Connect your Google Calendar so Aplec can join your meetings automatically and take notes. You’ll be asked to allow access to your calendar events, which is all Aplec needs.": (
+        "Conecta tu Google Calendar para que Aplec se una a tus reuniones automáticamente y tome notas. Se te pedirá acceso a los eventos de tu calendario, que es todo lo que Aplec necesita.",
+        "Connecta el teu Google Calendar perquè Aplec s'uneixi a les teves reunions automàticament i prengui notes. Se't demanarà accés als esdeveniments del teu calendari, que és tot el que Aplec necessita.",
     ),
     "Google OAuth is not configured": ("Google OAuth no está configurado", "Google OAuth no està configurat"),
     "Auto-join": ("Entrada automática", "Entrada automàtica"),
-    "Which meetings Fred joins by itself.": ("A qué reuniones entra Fred por su cuenta.", "A quines reunions entra Fred pel seu compte."),
-    "“Meetings I organized or accepted” keeps Fred out of team invites you haven’t RSVP’d to. “Never” turns automatic joining off entirely: use the browser extension or invite the bot manually.": (
-        "«Reuniones que he organizado o aceptado» deja a Fred fuera de las invitaciones de equipo que no has respondido. «Nunca» desactiva por completo la entrada automática: usa la extensión del navegador o invita al bot a mano.",
-        "«Reunions que he organitzat o acceptat» deixa Fred fora de les invitacions d'equip que no has respost. «Mai» desactiva del tot l'entrada automàtica: fes servir l'extensió del navegador o convida el bot a mà.",
+    "Which meetings Aplec joins by itself.": ("A qué reuniones entra Aplec por su cuenta.", "A quines reunions entra Aplec pel seu compte."),
+    "“Meetings I organized or accepted” keeps Aplec out of team invites you haven’t RSVP’d to. “Never” turns automatic joining off entirely: use the browser extension or invite the bot manually.": (
+        "«Reuniones que he organizado o aceptado» deja a Aplec fuera de las invitaciones de equipo que no has respondido. «Nunca» desactiva por completo la entrada automática: usa la extensión del navegador o invita al bot a mano.",
+        "«Reunions que he organitzat o acceptat» deixa Aplec fora de les invitacions d'equip que no has respost. «Mai» desactiva del tot l'entrada automàtica: fes servir l'extensió del navegador o convida el bot a mà.",
     ),
     "Auto-join policy": ("Política de entrada automática", "Política d'entrada automàtica"),
     "Meetings I organized or accepted": ("Reuniones que he organizado o aceptado", "Reunions que he organitzat o acceptat"),
     "Every meeting with a Meet link": ("Todas las reuniones con enlace de Meet", "Totes les reunions amb enllaç de Meet"),
     "Never join automatically": ("Nunca entrar automáticamente", "No hi entris mai automàticament"),
     "Interface language": ("Idioma de la interfaz", "Idioma de la interfície"),
-    "The language of Fred's own pages: menus, titles and buttons.": (
-        "El idioma de las páginas de Fred: menús, títulos y botones.",
-        "L'idioma de les pàgines de Fred: menús, títols i botons.",
+    "The language of Aplec's own pages: menus, titles and buttons.": (
+        "El idioma de las páginas de Aplec: menús, títulos y botones.",
+        "L'idioma de les pàgines d'Aplec: menús, títols i botons.",
     ),
     "Meeting notes keep following the summary language below.": (
         "Las notas de las reuniones siguen el idioma del resumen, más abajo.",
@@ -395,18 +395,18 @@ CATALOG: dict[str, tuple[str, str]] = {
     "Capture token": ("Token de captura", "Token de captura"),
     "Worker URL": ("URL del worker", "URL del worker"),
     "Voiceprint": ("Huella de voz", "Empremta de veu"),
-    "Voiceprint enrolled. Fred can now name you in meeting notes by voice.": (
-        "Huella de voz registrada. Ahora Fred puede ponerte nombre en las notas por la voz.",
-        "Empremta de veu registrada. Ara Fred et pot posar el nom a les notes per la veu.",
+    "Voiceprint enrolled. Aplec can now name you in meeting notes by voice.": (
+        "Huella de voz registrada. Ahora Aplec puede ponerte nombre en las notas por la voz.",
+        "Empremta de veu registrada. Ara Aplec et pot posar el nom a les notes per la veu.",
     ),
     "Enrolled as <strong>{name}</strong>": ("Registrada como <strong>{name}</strong>", "Registrada com a <strong>{name}</strong>"),
     "{n}s of audio on file, stored only as a numeric voice template on this server. Delete it anytime; deletion is immediate.": (
         "{n} s de audio guardados solo como una plantilla numérica de voz en este servidor. Elimínala cuando quieras; se borra al instante.",
         "{n} s d'àudio desats només com una plantilla numèrica de veu en aquest servidor. Elimina-la quan vulguis; s'esborra a l'instant.",
     ),
-    "Delete your voiceprint? Fred will stop naming you by voice.": (
-        "¿Eliminar tu huella de voz? Fred dejará de reconocerte por la voz.",
-        "Vols eliminar la teva empremta de veu? Fred deixarà de reconèixer-te per la veu.",
+    "Delete your voiceprint? Aplec will stop naming you by voice.": (
+        "¿Eliminar tu huella de voz? Aplec dejará de reconocerte por la voz.",
+        "Vols eliminar la teva empremta de veu? Aplec deixarà de reconèixer-te per la veu.",
     ),
     "Delete my voiceprint": ("Eliminar mi huella de voz", "Elimina la meva empremta de veu"),
     "Re-record": ("Volver a grabar", "Torna a gravar"),
@@ -424,15 +424,15 @@ CATALOG: dict[str, tuple[str, str]] = {
     ),
     "Decline (nothing changes for you)": ("Rechazar (para ti no cambia nada)", "Rebutja (per a tu no canvia res)"),
     "No voiceprint": ("Sin huella de voz", "Sense empremta de veu"),
-    "Optional: enroll your voice so Fred can name you in notes even when several people share one microphone.": (
-        "Opcional: registra tu voz para que Fred te nombre en las notas incluso cuando varias personas comparten un micrófono.",
-        "Opcional: registra la teva veu perquè Fred et posi el nom a les notes fins i tot quan diverses persones comparteixen un micròfon.",
+    "Optional: enroll your voice so Aplec can name you in notes even when several people share one microphone.": (
+        "Opcional: registra tu voz para que Aplec te nombre en las notas incluso cuando varias personas comparten un micrófono.",
+        "Opcional: registra la teva veu perquè Aplec et posi el nom a les notes fins i tot quan diverses persones comparteixen un micròfon.",
     ),
     "Enroll now": ("Registrarla ahora", "Registra-la ara"),
     "What you are agreeing to.": ("A qué das tu consentimiento.", "A què dones el teu consentiment."),
-    "Fred converts your recording into a numeric voice template used only to label your name in this team's meeting notes and to give you access to the meetings where your voice is recognized (their owners can turn that off). The raw audio is deleted immediately after processing; your voice cannot be reconstructed from the template. It stays on this server, is never shared with anyone, and is deleted the moment you click delete or leave the team. Declining or deleting has no consequence: meetings and notes keep working, you simply appear by your Meet name or as SPEAKER_N.": (
-        "Fred convierte tu grabación en una plantilla numérica de voz que solo se usa para poner tu nombre en las notas de las reuniones de este equipo y para darte acceso a las reuniones en las que se reconozca tu voz (sus propietarios pueden desactivarlo). El audio original se elimina justo después de procesarlo; tu voz no se puede reconstruir a partir de la plantilla. La plantilla se queda en este servidor, nunca se comparte con nadie y se elimina en cuanto pulses eliminar o dejes el equipo. Rechazar o eliminar no tiene ninguna consecuencia: las reuniones y las notas siguen funcionando, simplemente apareces con tu nombre de Meet o como SPEAKER_N.",
-        "Fred converteix la teva gravació en una plantilla numèrica de veu que només s'utilitza per posar el teu nom a les notes de les reunions d'aquest equip i per donar-te accés a les reunions on es reconegui la teva veu (els seus propietaris ho poden desactivar). L'àudio original s'elimina just després de processar-lo; la teva veu no es pot reconstruir a partir de la plantilla. La plantilla es queda en aquest servidor, mai no es comparteix amb ningú i s'elimina en el moment que facis clic a eliminar o deixis l'equip. Rebutjar-ho o eliminar-la no té cap conseqüència: les reunions i les notes continuen funcionant, simplement apareixes amb el teu nom de Meet o com a SPEAKER_N.",
+    "Aplec converts your recording into a numeric voice template used only to label your name in this team's meeting notes and to give you access to the meetings where your voice is recognized (their owners can turn that off). The raw audio is deleted immediately after processing; your voice cannot be reconstructed from the template. It stays on this server, is never shared with anyone, and is deleted the moment you click delete or leave the team. Declining or deleting has no consequence: meetings and notes keep working, you simply appear by your Meet name or as SPEAKER_N.": (
+        "Aplec convierte tu grabación en una plantilla numérica de voz que solo se usa para poner tu nombre en las notas de las reuniones de este equipo y para darte acceso a las reuniones en las que se reconozca tu voz (sus propietarios pueden desactivarlo). El audio original se elimina justo después de procesarlo; tu voz no se puede reconstruir a partir de la plantilla. La plantilla se queda en este servidor, nunca se comparte con nadie y se elimina en cuanto pulses eliminar o dejes el equipo. Rechazar o eliminar no tiene ninguna consecuencia: las reuniones y las notas siguen funcionando, simplemente apareces con tu nombre de Meet o como SPEAKER_N.",
+        "Aplec converteix la teva gravació en una plantilla numèrica de veu que només s'utilitza per posar el teu nom a les notes de les reunions d'aquest equip i per donar-te accés a les reunions on es reconegui la teva veu (els seus propietaris ho poden desactivar). L'àudio original s'elimina just després de processar-lo; la teva veu no es pot reconstruir a partir de la plantilla. La plantilla es queda en aquest servidor, mai no es comparteix amb ningú i s'elimina en el moment que facis clic a eliminar o deixis l'equip. Rebutjar-ho o eliminar-la no té cap conseqüència: les reunions i les notes continuen funcionant, simplement apareixes amb el teu nom de Meet o com a SPEAKER_N.",
     ),
     "Name as it appears in Google Meet": ("Nombre tal como aparece en Google Meet", "Nom tal com apareix a Google Meet"),
     "● Record": ("● Grabar", "● Grava"),
@@ -466,13 +466,13 @@ CATALOG: dict[str, tuple[str, str]] = {
     "Audio too large": ("El audio es demasiado grande", "L'àudio és massa gran"),
     "Delete failed; try again": ("No se ha podido eliminar; inténtalo de nuevo", "No s'ha pogut eliminar; torna-ho a provar"),
     "Automatic sharing": ("Compartir automáticamente", "Compartició automàtica"),
-    "Share the meetings I record with the colleagues Fred recognizes in them": (
-        "Compartir las reuniones que grabo con los compañeros que Fred reconoce en ellas",
-        "Compartir les reunions que gravo amb els companys que Fred hi reconeix",
+    "Share the meetings I record with the colleagues Aplec recognizes in them": (
+        "Compartir las reuniones que grabo con los compañeros que Aplec reconoce en ellas",
+        "Compartir les reunions que gravo amb els companys que Aplec hi reconeix",
     ),
-    "Read access (notes, transcript, Ask) for people with a Fred account whose enrolled voice Fred recognizes in the recording. Remove anyone from a meeting's Access panel and Fred will not add them back.": (
-        "Acceso de lectura (notas, transcripción y preguntas) para las personas con cuenta en Fred cuya voz registrada Fred reconoce en la grabación. Si quitas a alguien desde el panel de Acceso de una reunión, Fred no volverá a añadirlo.",
-        "Accés de lectura (notes, transcripció i preguntes) per a les persones amb compte a Fred la veu registrada de les quals Fred reconeix a la gravació. Si treus algú des del tauler d'Accés d'una reunió, Fred no el tornarà a afegir.",
+    "Read access (notes, transcript, Ask) for people with an Aplec account whose enrolled voice Aplec recognizes in the recording. Remove anyone from a meeting's Access panel and Aplec will not add them back.": (
+        "Acceso de lectura (notas, transcripción y preguntas) para las personas con cuenta en Aplec cuya voz registrada Aplec reconoce en la grabación. Si quitas a alguien desde el panel de Acceso de una reunión, Aplec no volverá a añadirlo.",
+        "Accés de lectura (notes, transcripció i preguntes) per a les persones amb compte a Aplec la veu registrada de les quals Aplec reconeix a la gravació. Si treus algú des del tauler d'Accés d'una reunió, Aplec no el tornarà a afegir.",
     ),
     "Account": ("Cuenta", "Compte"),
     "Signed in as <strong>{name}</strong> ({email})": (
@@ -485,9 +485,9 @@ CATALOG: dict[str, tuple[str, str]] = {
     ),
 
     # --- admin: users and teams ---------------------------------------------------
-    "Approve access requests and manage who can use this Fred": (
-        "Aprueba solicitudes de acceso y gestiona quién puede usar este Fred",
-        "Aprova sol·licituds d'accés i gestiona qui pot fer servir aquest Fred",
+    "Approve access requests and manage who can use this Aplec": (
+        "Aprueba solicitudes de acceso y gestiona quién puede usar este Aplec",
+        "Aprova sol·licituds d'accés i gestiona qui pot fer servir aquest Aplec",
     ),
     "Waiting for approval": ("Pendientes de aprobación", "Pendents d'aprovació"),
     "These people signed in with Google but aren't members yet. Approving runs the full onboarding (Vexa account, API key, webhook, roster) — their next sign-in just works. Rejecting deletes the request; they can re-request by signing in again.": (
@@ -547,9 +547,9 @@ CATALOG: dict[str, tuple[str, str]] = {
     ),
     "Declined the invitation": ("Rechazó la invitación", "Va rebutjar la invitació"),
     "Not enrolled": ("Sin registrar", "Sense registrar"),
-    "Unlink {name} from {email}? The print stays; Fred stops sharing meetings with this account automatically.": (
-        "¿Desvincular a {name} de {email}? La huella se mantiene; Fred deja de compartir reuniones con esta cuenta automáticamente.",
-        "Vols desvincular {name} de {email}? L'empremta es manté; Fred deixa de compartir reunions amb aquest compte automàticament.",
+    "Unlink {name} from {email}? The print stays; Aplec stops sharing meetings with this account automatically.": (
+        "¿Desvincular a {name} de {email}? La huella se mantiene; Aplec deja de compartir reuniones con esta cuenta automáticamente.",
+        "Vols desvincular {name} de {email}? L'empremta es manté; Aplec deixa de compartir reunions amb aquest compte automàticament.",
     ),
     "Unlink": ("Desvincular", "Desvincula"),
     "Delete the voiceprint for {name}? They can re-enroll anytime.": (
@@ -560,9 +560,9 @@ CATALOG: dict[str, tuple[str, str]] = {
     "Cancel invite": ("Cancelar invitación", "Cancel·la la invitació"),
     "Invite to enroll": ("Invitar a registrarse", "Convida a registrar-se"),
     "Prints not linked to an account": ("Huellas sin vincular a una cuenta", "Empremtes sense vincular a cap compte"),
-    "Enrolled before the consent flow existed (CLI), or the account left the allowlist. They still name speakers, but Fred cannot share a meeting with that person automatically until the print is linked to their account. Link it here, or the member can re-enroll from Settings.": (
-        "Registradas antes de que existiera el flujo de consentimiento (CLI), o la cuenta ya no está en la lista de usuarios permitidos. Siguen poniendo nombre a los hablantes, pero Fred no puede compartir automáticamente una reunión con esa persona hasta que la huella esté vinculada a su cuenta. Vincúlala aquí, o el miembro puede volver a registrarla desde Ajustes.",
-        "Registrades abans que existís el flux de consentiment (CLI), o el compte ja no és a la llista d'usuaris permesos. Encara posen nom als parlants, però Fred no pot compartir automàticament una reunió amb aquesta persona fins que l'empremta estigui vinculada al seu compte. Vincula-la aquí, o el membre la pot tornar a registrar des de Configuració.",
+    "Enrolled before the consent flow existed (CLI), or the account left the allowlist. They still name speakers, but Aplec cannot share a meeting with that person automatically until the print is linked to their account. Link it here, or the member can re-enroll from Settings.": (
+        "Registradas antes de que existiera el flujo de consentimiento (CLI), o la cuenta ya no está en la lista de usuarios permitidos. Siguen poniendo nombre a los hablantes, pero Aplec no puede compartir automáticamente una reunión con esa persona hasta que la huella esté vinculada a su cuenta. Vincúlala aquí, o el miembro puede volver a registrarla desde Ajustes.",
+        "Registrades abans que existís el flux de consentiment (CLI), o el compte ja no és a la llista d'usuaris permesos. Encara posen nom als parlants, però Aplec no pot compartir automàticament una reunió amb aquesta persona fins que l'empremta estigui vinculada al seu compte. Vincula-la aquí, o el membre la pot tornar a registrar des de Configuració.",
     ),
     "source: {source}": ("origen: {source}", "origen: {source}"),
     "linked to {email}, no longer on the allowlist": (

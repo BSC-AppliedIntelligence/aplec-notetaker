@@ -245,7 +245,7 @@ class VoiceprintStore:
         return False
 
     def set_account(self, slug: str, email: str | None, by: str) -> dict | None:
-        """Link a print to a Fred account (its email), or unlink it (None).
+        """Link a print to an Aplec account (its email), or unlink it (None).
         Prints enrolled with the operator CLI before the consent flow carry no
         email; this is how an admin attaches one, so the person can be shared
         meetings automatically. Returns the print's metadata, or None when no

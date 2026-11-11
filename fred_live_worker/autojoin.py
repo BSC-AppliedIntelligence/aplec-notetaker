@@ -378,7 +378,7 @@ class AutojoinWatcher:
         events = await asyncio.to_thread(self.upcoming_events_all, now)
 
         # Per-calendar auto-join policy (user preference; legacy operator token
-        # defaults to "all"). Filtered before BOTH passes so Fred neither
+        # defaults to "all"). Filtered before BOTH passes so Aplec neither
         # invites itself to nor joins meetings the owner didn't opt into.
         from .user_prefs import get_autojoin_policy
 

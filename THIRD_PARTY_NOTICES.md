@@ -1,6 +1,6 @@
 # Third-party notices
 
-Fred is licensed under the Apache License 2.0 ([LICENSE](LICENSE)). It bundles these
+Aplec is licensed under the Apache License 2.0 ([LICENSE](LICENSE)). It bundles these
 files, each under its own license, whose texts are in [licenses/](licenses/):
 
 | Component | Files | License |
@@ -14,7 +14,7 @@ files, each under its own license, whose texts are in [licenses/](licenses/):
 submodule in `vendor/vexa`; whisper.cpp and llama.cpp (MIT) are cloned and built at
 install time. None of them is copied into this repository.
 
-The models are not part of this repository either. Fred downloads them at install
+The models are not part of this repository either. Aplec downloads them at install
 time or on first use, and each keeps its publisher's terms:
 
 | Model | Used for | License |

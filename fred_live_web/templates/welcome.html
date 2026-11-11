@@ -12,17 +12,17 @@
       </linearGradient></defs>
     </svg>
     <h1>{{ t("Welcome, {name}!", name=user.name) }}</h1>
-    <p class="login-sub">{{ t("One step left: connect your Google Calendar and Fred will join your meetings automatically, record them, and turn them into notes, action items and answers.") }}</p>
+    <p class="login-sub">{{ t("One step left: connect your Google Calendar and Aplec will join your meetings automatically, record them, and turn them into notes, action items and answers.") }}</p>
 
     <ol class="welcome-steps">
-      <li>{{ th("<strong>Connect your calendar</strong>: Fred sees your upcoming Google Meet events") }}</li>
-      <li>{{ th("<strong>Fred joins by itself</strong>: invited &amp; signed in, moments before each meeting starts") }}</li>
+      <li>{{ th("<strong>Connect your calendar</strong>: Aplec sees your upcoming Google Meet events") }}</li>
+      <li>{{ th("<strong>Aplec joins by itself</strong>: invited &amp; signed in, moments before each meeting starts") }}</li>
       <li>{{ th("<strong>Notes appear here</strong>: summary, action items, transcript, and a chat that answers from the meeting") }}</li>
     </ol>
 
     <form method="post" action="/settings/calendar/connect" class="welcome-form">
-      <span class="welcome-label">{{ t("Which meetings should Fred join?") }}</span>
-      <div class="lang-grid lang-grid-compact" role="radiogroup" aria-label="{{ t('Which meetings should Fred join?') }}">
+      <span class="welcome-label">{{ t("Which meetings should Aplec join?") }}</span>
+      <div class="lang-grid lang-grid-compact" role="radiogroup" aria-label="{{ t('Which meetings should Aplec join?') }}">
         {% for value, label in autojoin_policies.items() %}
         <label class="lang-pill">
           <input type="radio" name="autojoin_policy" value="{{ value }}" {{ "checked" if value == autojoin_policy }}>

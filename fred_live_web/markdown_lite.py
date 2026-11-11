@@ -1,4 +1,4 @@
-"""Minimal, safe Markdown rendering for LLM answers in the Ask Fred panel.
+"""Minimal, safe Markdown rendering for LLM answers in the Ask Aplec panel.
 
 The model emits Markdown (`**bold**`, `-` lists, `##` headings) which the chat
 bubble used to print literally. We do NOT pull in a Markdown library plus a

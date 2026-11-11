@@ -1,4 +1,4 @@
-# Installing Fred from scratch
+# Installing Aplec from scratch
 
 This guide takes one Linux machine with an NVIDIA GPU to a deployment your whole
 team can use: a site behind HTTPS where people sign in with Google, and a Chrome
@@ -23,8 +23,8 @@ nothing needs to live anywhere in particular.
 ## 2. Code and Python environment
 
 ```bash
-git clone https://github.com/BSC-AppliedIntelligence/fred-notetaker.git
-cd fred-notetaker
+git clone https://github.com/BSC-AppliedIntelligence/aplec-notetaker.git
+cd aplec-notetaker
 python3.12 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.worker.txt -r requirements.web.txt
@@ -36,7 +36,7 @@ must print `True`. If it does not (a CUDA version or platform the PyPI build doe
 cover), install the build for your CUDA from <https://pytorch.org> first, then the
 requirements again.
 
-`requirements.worker.lock.txt` is the exact environment Fred was validated with
+`requirements.worker.lock.txt` is the exact environment Aplec was validated with
 (ARM64, CUDA 13); the container image uses it. On other platforms install from
 `requirements.worker.txt` as above.
 
@@ -53,7 +53,7 @@ cd ../..
 
 `whisper-batch` (in `tools/`) keeps the model loaded for a whole meeting instead of
 reloading it for every speaker turn, with the same output as `whisper-cli`. The
-script also applies `patches/whisper-cpp-second-language.patch`, which lets Fred
+script also applies `patches/whisper-cpp-second-language.patch`, which lets Aplec
 give Whisper a second language and stops it from translating what is said in
 that language. If a future whisper.cpp refuses the patch, the build still works
 without that feature. After updating whisper.cpp, rerun the script, restart the
@@ -80,7 +80,7 @@ worker and check that both engines still agree:
 
 ## 5. The language model that writes the notes
 
-Fred talks to any OpenAI-compatible chat API: a model on this machine, a server you
+Aplec talks to any OpenAI-compatible chat API: a model on this machine, a server you
 run elsewhere, or a hosted API. Pick one.
 
 **A. Local llama.cpp** (about 25 GB of GPU memory for the default model):
@@ -124,16 +124,16 @@ FRED_LIVE_LLM_CTX_SIZE=128000          # the model's context window
 
 When a provider's route is not under `/v1` (Gemini's is
 `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`), give the
-full `.../chat/completions` URL as the base. Fred sends `temperature` and `max_tokens`
+full `.../chat/completions` URL as the base. Aplec sends `temperature` and `max_tokens`
 on every call, so models that refuse them, as some reasoning models do, will not work
 as they are. The prompts were tuned on Qwen3.8-27B; other capable chat models should
-give the same JSON, which Fred validates and repairs, but test the notes on a few of
+give the same JSON, which Aplec validates and repairs, but test the notes on a few of
 your meetings.
 
 With options B and C, the transcripts, the meeting chat and the Ask questions go to
 that server, under its terms; audio never does.
 
-**Transcription stays local.** There is no hosted-transcription backend: Fred
+**Transcription stays local.** There is no hosted-transcription backend: Aplec
 transcribes every speaker turn separately, hundreds of calls per meeting, with its
 language set, a second language as a hint and Whisper's own language probabilities
 and confidence, which hosted transcription APIs do not expose. Diarization and
@@ -152,7 +152,7 @@ Both the worker and the web app read this file. Set at least:
 | --- | --- |
 | `FRED_LIVE_AUTH_TOKEN` | `openssl rand -hex 24`. Guards the worker's internal API; empty means every internal request is refused |
 | `FRED_LIVE_WEB_SESSION_SECRET` | `openssl rand -hex 32`. Signs sign-in sessions and the extension's capture tokens; the web app refuses to start without it |
-| `FRED_LIVE_WEB_BASE_URL` | The public URL of your site, e.g. `https://fred.example.org` |
+| `FRED_LIVE_WEB_BASE_URL` | The public URL of your site, e.g. `https://aplec.example.org` |
 | `FRED_LIVE_WEB_USERS` | The first administrator: `you@example.org:1:admin` (see section 9) |
 | `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET` | From section 7 |
 | `FRED_LIVE_HF_TOKEN`, `HF_TOKEN` | From section 4 |
@@ -247,7 +247,7 @@ Each person then, in Chrome:
    (the server URL is already filled in), and saves: it should say *connected*.
 3. Clicks **Grant microphone access** on the same page. Chrome can only ask for
    the microphone there, never during a recording.
-4. Joins a meeting in Chrome and clicks the Fred icon to record; clicking again,
+4. Joins a meeting in Chrome and clicks the Aplec icon to record; clicking again,
    or leaving the call, stops it. The notes appear on the site a few minutes later.
 
 Unpacked extensions do not update themselves. To give everyone automatic updates,
@@ -257,7 +257,7 @@ publish your build to the Chrome Web Store under your own developer account:
 ## 11. Optional: the meeting bot and calendar auto-join
 
 The bot is [Vexa](https://github.com/Vexa-ai/vexa), pinned as a git submodule and
-patched for Fred (ARM64 builds, speaker events that survive the host ending the
+patched for Aplec (ARM64 builds, speaker events that survive the host ending the
 meeting, a persistent signed-in session, delivery to a worker on the same host).
 
 ```bash
@@ -281,7 +281,7 @@ DOCKER_GID=<getent group docker | cut -d: -f3>
 TRANSCRIPTION_SERVICE_URL=http://transcription-disabled.invalid/v1/audio/transcriptions
 ```
 
-The last line keeps Vexa in recording-only mode: Fred transcribes, and no audio
+The last line keeps Vexa in recording-only mode: Aplec transcribes, and no audio
 goes to Vexa's hosted transcription service. Then build the bot image and start
 Vexa:
 
@@ -317,7 +317,7 @@ systemctl --user daemon-reload && systemctl --user enable --now fred-autojoin
 **The bot's Google account.** Anonymous bots work, but the host must admit them
 by hand and Meet labels them as outsiders. For signed-in bots, create a Google
 account for the bot, log it in once through a Vexa browser session (see Vexa's
-documentation on browser sessions; Fred's patch keeps the session alive), and
+documentation on browser sessions; Aplec's patch keeps the session alive), and
 set `FRED_LIVE_BOT_GOOGLE_ACCOUNT` to its address. The watcher then also invites
 that account to each event, so the bot is a guest of the meeting. To stay
 anonymous, set `FRED_LIVE_AUTOJOIN_AUTHENTICATED=false` and
@@ -327,7 +327,7 @@ After any reset of the submodule, apply the patch again and rebuild the bot imag
 
 ## 12. Optional: voiceprints
 
-With voiceprints, Fred names people by their voice: those who share one
+With voiceprints, Aplec names people by their voice: those who share one
 microphone in a room, and anyone the page indicators miss. Each person enrolls
 in **Settings → Voiceprint**, behind a consent notice; only a numeric template is
 kept, never the recording, and they can delete it at any time. Admins invite
@@ -345,7 +345,7 @@ Prints from one backend do not match the other: switching means enrolling again.
 
 ## 13. Optional: the second diarizer
 
-NVIDIA's Nemotron 3 Diarization separates voices better in rooms, and Fred uses it
+NVIDIA's Nemotron 3 Diarization separates voices better in rooms, and Aplec uses it
 together with pyannote. It needs a newer `transformers` than the worker, so it gets
 its own environment, which reuses the worker's PyTorch:
 
@@ -355,7 +355,7 @@ its own environment, which reuses the worker's PyTorch:
 
 Then set `FRED_LIVE_DIARIZATION_NEMOTRON=true` and restart the worker. If the
 combination would cost someone their name, or hears fewer voices than the page
-shows, Fred keeps pyannote's result for that meeting.
+shows, Aplec keeps pyannote's result for that meeting.
 
 ## 14. Optional: a glossary for names
 
@@ -391,14 +391,14 @@ so editing it needs no restart.
 
 - **torchcodec must stay uninstalled.** It arrives with pyannote's dependencies,
   and when it cannot load FFmpeg's shared libraries, `transformers` fails at
-  import time. Fred decodes audio with the ffmpeg binary instead.
+  import time. Aplec decodes audio with the ffmpeg binary instead.
   pyannote then prints a warning that torchcodec is not installed: that is
   expected and harmless.
 - **The `transformers` ASR backend** uses far more memory than whisper.cpp in
   word-timestamp mode; keep the default `whispercpp` with diarization on.
 - **A new Docker network can hide part of your network.** Docker picks the first
   free private range for a network created without a subnet; if that range
-  contains a server Fred talks to (your LLM, for instance), its route is shadowed
+  contains a server Aplec talks to (your LLM, for instance), its route is shadowed
   and requests fail with `No route to host`. Give compose projects explicit
   subnets, or set `default-address-pools` in Docker's daemon configuration.
 - **Vexa has two kinds of API keys**: user keys (`X-API-Key`, for bots and

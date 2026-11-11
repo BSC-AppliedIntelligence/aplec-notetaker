@@ -1,7 +1,7 @@
 # The calendar watcher, only with the meeting bot (docs/INSTALL.md, section 11).
 # Copy to ~/.config/systemd/user/.
 [Unit]
-Description=Fred calendar watcher (sends the meeting bot)
+Description=Aplec calendar watcher (sends the meeting bot)
 After=fred-worker.service
 
 [Service]

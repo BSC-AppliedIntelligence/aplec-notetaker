@@ -1,4 +1,4 @@
-// Fred capture (MV3 service worker).
+// Aplec capture (MV3 service worker).
 // Orchestrates: call detection (from content script) -> badge signal ->
 // action-click starts/stops capture (tabCapture requires an extension
 // invocation gesture; a page button cannot grant it) -> offscreen document
@@ -119,7 +119,17 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
 // when the extension is installed, updated, or reloaded. Field test: a Meet
 // tab from before the reload has no content script, so no call detection, no
 // speaker names, no title. Inject into existing Meet tabs ourselves.
+// A notice text that an earlier version offered as the default is the default,
+// not the user's choice: a stored copy of it follows the default when it changes.
+const NOTICE_OLD_DEFAULTS = [
+  "🔴 Fred Notetaker is recording this meeting to produce notes. · Fred Notetaker está grabando esta reunión para generar notas.",
+];
+
 chrome.runtime.onInstalled.addListener(async () => {
+  try {
+    const { noticeText } = await chrome.storage.local.get("noticeText");
+    if (NOTICE_OLD_DEFAULTS.includes(noticeText)) await chrome.storage.local.remove("noticeText");
+  } catch (e) {}
   try {
     const tabs = await chrome.tabs.query({
       url: [
@@ -190,8 +200,8 @@ async function recordUploadFailure() {
   await chrome.storage.session.set({ netDegraded: s.degraded || becameDegraded, netFails: fails });
   if (becameDegraded) {
     chrome.notifications.create("fred-net-down", {
-      type: "basic", iconUrl: "icons/fred128.png",
-      title: "Fred: connection lost",
+      type: "basic", iconUrl: "icons/aplec128.png",
+      title: "Aplec: connection lost",
       message: "Can't reach the server (VPN?). Recording continues; audio is buffered and will catch up.",
     });
   }
@@ -208,8 +218,8 @@ async function recordUploadSuccess(queuedBefore) {
     // buffer fully drained: recovery is real, not the first lucky packet
     await chrome.storage.session.set({ netDegraded: false, netFails: 0, netDelivered: 0 });
     chrome.notifications.create("fred-net-up", {
-      type: "basic", iconUrl: "icons/fred128.png",
-      title: "Fred: caught up",
+      type: "basic", iconUrl: "icons/aplec128.png",
+      title: "Aplec: caught up",
       message: `Connection is back; ${delivered} buffered chunk(s) delivered.`,
     });
   } else {
@@ -218,7 +228,7 @@ async function recordUploadSuccess(queuedBefore) {
 }
 
 function notify(title, message) {
-  chrome.notifications.create({ type: "basic", iconUrl: "icons/fred128.png", title, message });
+  chrome.notifications.create({ type: "basic", iconUrl: "icons/aplec128.png", title, message });
 }
 
 function setBadge(text, color) {
@@ -285,7 +295,7 @@ async function checkForUpdate() {
       // extension triggers a re-review and a scary prompt, so the message
       // covers both cases instead of guessing.
       notify(
-        `Fred extension v${latest} available`,
+        `Aplec extension v${latest} available`,
         `You have v${mine}. If you installed from the Chrome Web Store, Chrome updates it on its own within a few hours — nothing to do. Only a hand-installed zip needs replacing (Settings has the download).`
       );
     }
@@ -299,7 +309,7 @@ async function checkForUpdate() {
 chrome.alarms.create(UPDATE_CHECK_ALARM, { delayInMinutes: 1, periodInMinutes: 360 });
 
 // Keep in sync with CHAT_DEFAULTS in content.js and the Options page.
-const NOTICE_DEFAULT_TEXT = "🔴 Fred Notetaker is recording this meeting to produce notes. · Fred Notetaker está grabando esta reunión para generar notas.";
+const NOTICE_DEFAULT_TEXT = "🔴 Aplec Notetaker is recording this meeting to produce notes. · Aplec Notetaker está grabando esta reunión para generar notas.";
 
 // The session a page message belongs to: the live capture of that tab, or the
 // one draining toward finish after a stop (closing speaker ENDs, a final chat
@@ -328,16 +338,16 @@ function relativeTo(anchor, absoluteMs) {
 // starts. A failure is loud because then nobody was told.
 function notifyNoticeOutcome(status, reason) {
   if (status === "sent") {
-    notify("Fred is recording", "Participants were notified in the meeting chat.");
+    notify("Aplec is recording", "Participants were notified in the meeting chat.");
   } else if (status === "disabled") {
-    notify("Fred is recording", "The automatic chat notice is off in Fred's Options. Let participants know you're recording.");
+    notify("Aplec is recording", "The automatic chat notice is off in Aplec's Options. Let participants know you're recording.");
   } else {
     chrome.notifications.create("fred-notice-failed", {
-      type: "basic", iconUrl: "icons/fred128.png", priority: 2,
-      title: "Fred is recording — please tell participants",
+      type: "basic", iconUrl: "icons/aplec128.png", priority: 2,
+      title: "Aplec is recording — please tell participants",
       message: status === "unsupported"
-        ? "This page has no chat Fred can post the notice to."
-        : `Fred couldn't post the notice in the meeting chat (${reason || "unknown reason"}).`,
+        ? "This page has no chat Aplec can post the notice to."
+        : `Aplec couldn't post the notice in the meeting chat (${reason || "unknown reason"}).`,
     });
   }
 }
@@ -364,9 +374,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (first && msg.transition && !state.capturing) {
           chrome.notifications.create(`fred-call-${sender.tab.id}`, {
             type: "basic",
-            iconUrl: "icons/fred128.png",
-            title: "Fred noticed a meeting",
-            message: `${msg.title || msg.meetCode || "Google Meet"}. Click the Fred icon to record.`,
+            iconUrl: "icons/aplec128.png",
+            title: "Aplec noticed a meeting",
+            message: `${msg.title || msg.meetCode || "Google Meet"}. Click the Aplec icon to record.`,
             priority: 1,
           });
         }
@@ -505,8 +515,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           if (fatal) {
             console.warn("chunk upload permanently refused", status, e);
             chrome.notifications.create("fred-upload-fatal", {
-              type: "basic", iconUrl: "icons/fred128.png",
-              title: "Fred: upload refused",
+              type: "basic", iconUrl: "icons/aplec128.png",
+              title: "Aplec: upload refused",
               message: `The server refused audio (HTTP ${status}). Check your token / session limits.`,
             });
           } else {
@@ -534,7 +544,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({});
     } else if (msg.type === "offscreen-stopped") {
       if (msg.undelivered) {
-        notify("Fred: some audio didn't upload",
+        notify("Aplec: some audio didn't upload",
                `${msg.undelivered} chunk(s) could not be delivered before the recording closed.`);
       }
       state.lastDrainHeartbeatMs = 0; // drain is over; the document may close
@@ -589,12 +599,12 @@ async function ensureContentScript(tabId) {
 async function startCapture(tab) {
   const platform = platformForUrl(tab.url);
   if (!platform) {
-    notify("Fred", "Open a Google Meet, Teams, or Zoom (web client) tab first, then click Fred.");
+    notify("Aplec", "Open a Google Meet, Teams, or Zoom (web client) tab first, then click Aplec.");
     return;
   }
   const watcherAlive = await ensureContentScript(tab.id);
   if (!watcherAlive) {
-    notify("Fred: speaker names may be missing",
+    notify("Aplec: speaker names may be missing",
       "The page watcher could not be loaded. Recording will work, but refresh the meeting tab if names matter.");
   }
   const info = state.inCallTabs.get(tab.id) || {};
@@ -638,7 +648,7 @@ async function startCapture(tab) {
     sessionId = started.session_id;
     resumed = !!started.resumed;
   } catch (e) {
-    notify("Fred can't reach the worker", String(e).slice(0, 120));
+    notify("Aplec can't reach the worker", String(e).slice(0, 120));
     return;
   }
 
@@ -655,17 +665,17 @@ async function startCapture(tab) {
     await persistState();
     chrome.tabs.sendMessage(tab.id, { type: "capture-started" }).catch(() => {});
     if (resumed) {
-      notify("Same meeting", "Fred will add this recording to the meeting's existing notes.");
+      notify("Same meeting", "Aplec will add this recording to the meeting's existing notes.");
     }
     if (resp.micOk === false) {
       notify(
         "Recording WITHOUT your microphone",
-        "Only tab audio is captured. Open Fred's Options and click 'Grant microphone access', then restart the recording."
+        "Only tab audio is captured. Open Aplec's Options and click 'Grant microphone access', then restart the recording."
       );
     }
   } catch (e) {
     console.error("start failed", e);
-    notify("Fred: recording failed to start", String(e).slice(0, 120));
+    notify("Aplec: recording failed to start", String(e).slice(0, 120));
     try { await chrome.offscreen.closeDocument(); } catch (_) {}
   }
 }
@@ -751,13 +761,13 @@ async function finishSession(sessionId) {
   try {
     const result = await api(`/capture/${sessionId}/finish`, { method: "POST" });
     if (result && result.status === "accepted") {
-      notify("Fred is processing", "Notes will appear in Fred Notetaker in a few minutes.");
+      notify("Aplec is processing", "Notes will appear in Aplec Notetaker in a few minutes.");
     }
   } catch (e) {
     if (/no audio/i.test(String(e))) {
-      if (firstTime) notify("Fred: nothing recorded", "The recording was too short to save any audio.");
+      if (firstTime) notify("Aplec: nothing recorded", "The recording was too short to save any audio.");
     } else {
-      notify("Fred: finish failed", String(e).slice(0, 120));
+      notify("Aplec: finish failed", String(e).slice(0, 120));
     }
   }
   // Close the offscreen document only if no newer session is using it and no

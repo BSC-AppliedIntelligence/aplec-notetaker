@@ -45,7 +45,7 @@ def _load(data_dir: Path) -> dict:
         return {}
 
 
-# value -> UI label. "accepted" is the default: Fred only covers meetings the
+# value -> UI label. "accepted" is the default: Aplec only covers meetings the
 # user organized or explicitly accepted — invited-but-ignored team meetings
 # don't get an uninvited notetaker.
 AUTOJOIN_POLICIES: dict[str, str] = {
@@ -83,7 +83,7 @@ def set_autojoin_policy(data_dir: Path, vexa_user_id, email: str, value: str) ->
 
 
 def get_auto_share(data_dir: Path, vexa_user_id) -> bool:
-    """Share my recordings with the people Fred recognizes by voice in them.
+    """Share my recordings with the people Aplec recognizes by voice in them.
     On unless the user turned it off."""
     if vexa_user_id is None:
         return True

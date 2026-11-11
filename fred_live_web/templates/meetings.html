@@ -18,11 +18,11 @@
 </div>
 
 {% if just_connected %}
-<div class="notice notice-ok">{{ t("Calendar connected. Fred will join your upcoming Google Meet events automatically and their notes will appear here.") }}</div>
+<div class="notice notice-ok">{{ t("Calendar connected. Aplec will join your upcoming Google Meet events automatically and their notes will appear here.") }}</div>
 {% elif not calendar_account %}
 <div class="notice connect-banner">
   <div>
-    {{ th("<strong>Connect your Google Calendar</strong> so Fred can join your meetings automatically and take notes.") }}
+    {{ th("<strong>Connect your Google Calendar</strong> so Aplec can join your meetings automatically and take notes.") }}
   </div>
   <form method="post" action="/settings/calendar/connect">
     <button class="btn-primary btn-s" type="submit">{{ t("Connect calendar") }}</button>
@@ -68,7 +68,7 @@
     <path d="M83 24.5c1.6-.8 2.4-3.4 2.8-6M85.6 18.4c3.4-.4 5.2-.4 7.8 0" stroke="#171310" stroke-width="1.8" stroke-linecap="round" fill="none"/>
   </svg>
   <h2>{{ t("No meetings yet") }}</h2>
-  <p>{{ t("Fred joins your Google Calendar meetings automatically and the notes appear here minutes after the call ends.") }}</p>
+  <p>{{ t("Aplec joins your Google Calendar meetings automatically and the notes appear here minutes after the call ends.") }}</p>
   {% endif %}
 </div>
 {% endif %}
@@ -88,7 +88,7 @@
       <span class="meta-item"><time data-lt="time" datetime="{{ iso_utc(card.start_time) }}">{{ fmt_time(card.start_time) }}</time>{% if card.duration_label %} · {{ card.duration_label }}{% endif %}</span>
       {% if card.meet_code %}<span class="meta-item mono">{{ card.meet_code }}</span>{% endif %}
     </div>
-    <p class="card-summary muted">{{ t("Fred is transcribing and summarizing this meeting. It appears here automatically.") }}</p>
+    <p class="card-summary muted">{{ t("Aplec is transcribing and summarizing this meeting. It appears here automatically.") }}</p>
     <div class="shimmer-lines"><span></span><span style="width: 72%"></span></div>
   </div>
 

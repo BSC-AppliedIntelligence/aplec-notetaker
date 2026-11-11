@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Downloads the model weights Fred reads from models/. Resumable, and skips files
+# Downloads the model weights Aplec reads from models/. Resumable, and skips files
 # that are already there.
 #
 #   ./scripts/download_models.sh                Whisper large-v3 for whisper.cpp (~3 GB)

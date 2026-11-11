@@ -1,4 +1,4 @@
-/* fred.live design system: dark, elevated warm neutrals, single amber
+/* Aplec design system: dark, elevated warm neutrals, single amber
    accent reserved for identity + action; status colors carry meaning only. */
 
 @font-face {
@@ -282,7 +282,7 @@ summary.collapsible::-webkit-details-marker { display: none; }
 }
 .bubble-error { align-self: flex-start; background: var(--danger-bg); color: var(--danger); border-bottom-left-radius: 5px; }
 
-/* Fred's answer is rendered Markdown (markdown_lite), so blocks carry the
+/* Aplec's answer is rendered Markdown (markdown_lite), so blocks carry the
    spacing — pre-wrap would double it. The user bubble stays plain text. */
 .bubble-fred { white-space: normal; }
 .bubble-fred > :first-child { margin-top: 0; }

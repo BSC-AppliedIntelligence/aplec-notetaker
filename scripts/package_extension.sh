@@ -7,7 +7,7 @@
 #   fred-extension-store.zip  what the Chrome Web Store console accepts: the
 #                             manifest MUST be at the zip root (docs/EXTENSION.md)
 #
-# The extension in extension/ carries a placeholder site (https://fred.example.org);
+# The extension in extension/ carries a placeholder site (https://aplec.example.org);
 # the build replaces it with the origin of FRED_LIVE_WEB_BASE_URL, taken from the
 # environment or from .env.worker, in the host permissions and as the default
 # server in Options. Rerun after changing the site URL or anything in extension/.
@@ -15,7 +15,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 STATIC="fred_live_web/static"
-PLACEHOLDER="https://fred.example.org"
+PLACEHOLDER="https://aplec.example.org"
 
 SITE="${FRED_LIVE_WEB_BASE_URL:-}"
 if [[ -z "$SITE" && -f .env.worker ]]; then
@@ -31,7 +31,7 @@ print(f"{parts.scheme}://{parts.netloc}")
 PY
 )" || true
 if [[ -z "$ORIGIN" ]]; then
-  echo "error: set FRED_LIVE_WEB_BASE_URL (in .env.worker or the environment) to your Fred site, e.g. https://fred.example.org" >&2
+  echo "error: set FRED_LIVE_WEB_BASE_URL (in .env.worker or the environment) to your Aplec site, e.g. https://aplec.example.org" >&2
   exit 1
 fi
 

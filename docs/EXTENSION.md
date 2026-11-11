@@ -55,12 +55,12 @@ otherwise people with the previous store version are told to update by hand.
 
 ### Listing answers
 
-- **Name**: Fred: meeting notes without the bot
+- **Name**: Aplec: meeting notes without the bot
 - **Summary**: Records your Google Meet, Teams, and Zoom calls in the browser and
-  sends them to your team's self-hosted Fred for notes.
+  sends them to your team's self-hosted Aplec for notes.
 - **Category**: Productivity → Tools. **Visibility**: Unlisted.
 - **Description**: what the extension does (see `extension/README.md`), plus that
-  it only works with a self-hosted Fred server run by the user's own team, and
+  it only works with a self-hosted Aplec server run by the user's own team, and
   that audio goes only to the server the user configures.
 - **Single purpose**: record the user's own meeting audio (tab and microphone)
   and upload it to the user's self-hosted meeting-notes server.
@@ -74,7 +74,7 @@ otherwise people with the previous store version are told to update by hand.
     extension is installed or updated.
   - Host permissions: the meeting sites (`meet.google.com`,
     `teams.microsoft.com`, `teams.live.com`, `*.zoom.us`) to detect the call and
-    read who is speaking; your Fred site and localhost, to upload.
+    read who is speaking; your Aplec site and localhost, to upload.
   - Microphone: record the user's own voice, granted on the Options page.
 - **Data use**: the extension handles audio, website content (participant names
   and who is speaking) and personal communications (the meeting chat after

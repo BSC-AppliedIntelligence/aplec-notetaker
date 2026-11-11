@@ -175,7 +175,7 @@ Server side is done: webhook registered, key stored, allowlist updated (no resta
 Remaining steps:
   1. Google Cloud console: add {args.email} as a test user on the OAuth consent
      screen (or publish the app) — without this, Google blocks their login.
-  2. Tell them to open your Fred site (FRED_LIVE_WEB_BASE_URL),
+  2. Tell them to open your Aplec site (FRED_LIVE_WEB_BASE_URL),
      sign in with Google, and in Settings:
        - connect their Google Calendar (enables auto-join for their meetings),
        - install the browser extension + paste their token,

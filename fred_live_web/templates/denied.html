@@ -6,7 +6,7 @@
   <div class="login-card">
     <h1>{{ t("Not on the list") }}</h1>
     <p class="login-sub">
-      {% if email %}{{ th("<strong>{email}</strong> isn’t allowed to access this Fred instance.", email=email) }}{% else %}{{ t("Your account isn’t allowed here.") }}{% endif %}
+      {% if email %}{{ th("<strong>{email}</strong> isn’t allowed to access this Aplec instance.", email=email) }}{% else %}{{ t("Your account isn’t allowed here.") }}{% endif %}
       {{ th("Ask the administrator to add you to <code>FRED_LIVE_WEB_USERS</code>.") }}
     </p>
     <a class="btn-secondary" href="/login">{{ t("Try another account") }}</a>

@@ -1,14 +1,14 @@
 <!-- Template for the privacy policy the Chrome Web Store asks for (docs/EXTENSION.md).
      Adapt it to your deployment, fill in the date and the contact, and host it at a public URL. -->
 
-# Privacy Policy — Fred: meeting notes without the bot (Chrome extension)
+# Privacy Policy — Aplec: meeting notes without the bot (Chrome extension)
 
 Last updated: <date>
 
 ## What this extension is
 
-Fred is a meeting-recording extension used by a single team with its own
-self-hosted Fred server. It records meetings you are in (with the recording
+Aplec is a meeting-recording extension used by a single team with its own
+self-hosted Aplec server. It records meetings you are in (with the recording
 indicator visible) and uploads the audio to **your team's own server** so it
 can produce transcripts and meeting notes. It does not work without such a
 server, and the extension's developer operates no server and receives no
@@ -45,7 +45,7 @@ the extension developer, Google, or any third party. There is no analytics,
 no telemetry, no advertising, and no sale of data of any kind.
 
 What happens to the audio after upload is governed by your team's server.
-In the standard Fred deployment the audio is transcribed and its speakers
+In the standard Aplec deployment the audio is transcribed and its speakers
 named on that machine, and old recordings are deleted automatically after a
 retention period. The notes are written by an open-weights language model
 that runs either on that machine or on another server operated by the same
@@ -77,5 +77,5 @@ the extension.
 ## Contact
 
 This extension is operated privately by the team that runs the corresponding
-Fred server. For any privacy question or request, contact your team's Fred
+Aplec server. For any privacy question or request, contact your team's Aplec
 administrator at <contact address>.

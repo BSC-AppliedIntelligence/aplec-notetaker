@@ -38,15 +38,15 @@
   <div class="meeting-main">
 
     {% if quality == "no_speech" %}
-    <div class="notice">{{ t("No speech was detected in this recording. Fred was probably alone in the call.") }}</div>
+    <div class="notice">{{ t("No speech was detected in this recording. Aplec was probably alone in the call.") }}</div>
     {% endif %}
 
     {% if recording_notice %}
     {% set rn = recording_notice %}
     {% if rn.state == "failed" %}
-    <div class="notice notice-danger">{% if rn.reason %}{{ t("Fred could not post the recording notice in the meeting chat ({reason}).", reason=rn.reason) }}{% else %}{{ t("Fred could not post the recording notice in the meeting chat.") }}{% endif %} {{ t("Participants may not have been told.") }}</div>
+    <div class="notice notice-danger">{% if rn.reason %}{{ t("Aplec could not post the recording notice in the meeting chat ({reason}).", reason=rn.reason) }}{% else %}{{ t("Aplec could not post the recording notice in the meeting chat.") }}{% endif %} {{ t("Participants may not have been told.") }}</div>
     {% else %}
-    <div class="notice notice-danger">{{ t("This meeting’s page had no chat Fred could post the recording notice to.") }} {{ t("Participants may not have been told.") }}</div>
+    <div class="notice notice-danger">{{ t("This meeting’s page had no chat Aplec could post the recording notice to.") }} {{ t("Participants may not have been told.") }}</div>
     {% endif %}
     {% endif %}
 
@@ -131,7 +131,7 @@
         <summary class="panel-title collapsible">{{ t("Access") }}</summary>
         <p class="settings-help" style="margin-top:10px">
           {% if user.is_admin %}{{ t("You can always see this meeting.") }}{% else %}{{ t("You and the admin can always see this meeting.") }}{% endif %}
-          {{ th("People below were given read access (notes, transcript, ask): they cannot reprocess, rename speakers, or re-share. Team shares add the team's <em>current</em> members; someone joining the team later does not gain access to this meeting. Colleagues Fred recognized by voice are added automatically (turn that off in Settings); anyone you remove stays removed.") }}
+          {{ th("People below were given read access (notes, transcript, ask): they cannot reprocess, rename speakers, or re-share. Team shares add the team's <em>current</em> members; someone joining the team later does not gain access to this meeting. Colleagues Aplec recognized by voice are added automatically (turn that off in Settings); anyone you remove stays removed.") }}
         </p>
         {% for email, g in grants.items() %}
         <div class="settings-row vp-row">
@@ -236,7 +236,7 @@
     <section class="panel ask-panel">
       <h2 class="panel-title">
         <svg class="icon-s spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4L12 3Z"/><path d="M19 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>
-        {{ t("Ask Fred") }}
+        {{ t("Ask Aplec") }}
       </h2>
       <p class="ask-hint">{{ t("Questions are answered strictly from this meeting.") }}</p>
 

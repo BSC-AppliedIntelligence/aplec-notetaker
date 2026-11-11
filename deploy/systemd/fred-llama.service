@@ -2,7 +2,7 @@
 # ~/.config/systemd/user/. scripts/run_llama_server.sh takes its settings
 # (FRED_LIVE_LLAMACPP_*) from the environment, loaded here from .env.worker.
 [Unit]
-Description=Fred summarizer (llama.cpp server)
+Description=Aplec summarizer (llama.cpp server)
 
 [Service]
 WorkingDirectory=%h/fred-notetaker

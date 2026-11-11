@@ -765,8 +765,8 @@ async def link_voiceprint_account(
     x_fred_live_token: str | None = Header(default=None),
     token: str | None = Query(default=None),
 ):
-    """Link a print to a Fred account (admin page). Prints from the operator
-    CLI carry no email; without one, Fred cannot share a meeting with that
+    """Link a print to an Aplec account (admin page). Prints from the operator
+    CLI carry no email; without one, Aplec cannot share a meeting with that
     person automatically. The web app checks that the email is on the roster."""
     _require_token(x_fred_live_token, token)
     from .voiceprints import VoiceprintStore

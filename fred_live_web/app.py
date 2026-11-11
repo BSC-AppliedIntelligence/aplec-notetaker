@@ -5,6 +5,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 from fastapi import FastAPI, File, Form, Request, UploadFile
@@ -265,10 +266,25 @@ def _redirect_uri() -> str:
     return settings.base_url.rstrip("/") + "/auth/google/callback"
 
 
+def _to_base_host(request: Request, path: str) -> RedirectResponse | None:
+    """Move a Google flow to the base URL's host when it starts under another
+    name of the site (an old name kept serving after a rename, say). Google
+    returns to the base URL, and the flow's state lives in the session cookie
+    of the host it started on: begun elsewhere, it would come back to a host
+    that never saw it."""
+    base = urlsplit(settings.base_url)
+    if base.netloc and request.url.netloc != base.netloc:
+        return RedirectResponse(settings.base_url.rstrip("/") + path, status_code=303)
+    return None
+
+
 @app.get("/auth/google")
 async def google_login(request: Request):
     if oauth is None:
         return PlainTextResponse("Google OAuth is not configured yet", status_code=503)
+    moved = _to_base_host(request, "/auth/google")
+    if moved is not None:
+        return moved
     request.session["oauth_flow"] = "login"
     return await oauth.google.authorize_redirect(request, _redirect_uri())
 
@@ -461,6 +477,9 @@ async def calendar_connect(
         set_summary_language(settings.data_dir, user.vexa_user_id, summary_language, email=user.email)
     if autojoin_policy and autojoin_policy in AUTOJOIN_POLICIES:
         set_autojoin_policy(settings.data_dir, user.vexa_user_id, user.email, autojoin_policy)
+    moved = _to_base_host(request, "/settings")
+    if moved is not None:
+        return moved
     request.session["oauth_flow"] = "calendar"
     # offline + consent forces a refresh token (required: the watcher polls 24/7).
     return await oauth.google_cal.authorize_redirect(
@@ -969,7 +988,7 @@ async def admin_voiceprint_cancel(request: Request, email: str = Form(...)):
 
 @app.post("/admin/voiceprints/link")
 async def admin_voiceprint_link(request: Request, slug: str = Form(...), email: str = Form("")):
-    """Attach a print to a Fred account (prints from the operator CLI carry
+    """Attach a print to an Aplec account (prints from the operator CLI carry
     no email), so the person can be shared meetings automatically."""
     user = _user(request)
     if user is None:

@@ -41,7 +41,7 @@
     <div class="vp-actions">
       {% if (row.print.metadata or {}).get("linked_by") %}
       <form method="post" action="/admin/voiceprints/link"
-            onsubmit='return confirm({{ t("Unlink {name} from {email}? The print stays; Fred stops sharing meetings with this account automatically.", name=row.print.name, email=row.email)|tojson }})'>
+            onsubmit='return confirm({{ t("Unlink {name} from {email}? The print stays; Aplec stops sharing meetings with this account automatically.", name=row.print.name, email=row.email)|tojson }})'>
         <input type="hidden" name="slug" value="{{ row.print.slug }}">
         <input type="hidden" name="email" value="">
         <button class="btn-secondary btn-s" type="submit">{{ t("Unlink") }}</button>
@@ -71,7 +71,7 @@
 {% if unlinked %}
 <section class="panel settings-panel">
   <h2 class="panel-title">{{ t("Prints not linked to an account") }}</h2>
-  <p class="settings-help">{{ t("Enrolled before the consent flow existed (CLI), or the account left the allowlist. They still name speakers, but Fred cannot share a meeting with that person automatically until the print is linked to their account. Link it here, or the member can re-enroll from Settings.") }}</p>
+  <p class="settings-help">{{ t("Enrolled before the consent flow existed (CLI), or the account left the allowlist. They still name speakers, but Aplec cannot share a meeting with that person automatically until the print is linked to their account. Link it here, or the member can re-enroll from Settings.") }}</p>
   {% for p in unlinked %}
   <div class="settings-row vp-row">
     <div>

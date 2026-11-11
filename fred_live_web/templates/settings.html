@@ -4,7 +4,7 @@
 {% macro consent_notice() %}
 <div class="vp-consent">
   <p class="settings-help"><strong>{{ t("What you are agreeing to.") }}</strong>
-  {{ t("Fred converts your recording into a numeric voice template used only to label your name in this team's meeting notes and to give you access to the meetings where your voice is recognized (their owners can turn that off). The raw audio is deleted immediately after processing; your voice cannot be reconstructed from the template. It stays on this server, is never shared with anyone, and is deleted the moment you click delete or leave the team. Declining or deleting has no consequence: meetings and notes keep working, you simply appear by your Meet name or as SPEAKER_N.") }} <span class="mono">({{ notice_version }})</span></p>
+  {{ t("Aplec converts your recording into a numeric voice template used only to label your name in this team's meeting notes and to give you access to the meetings where your voice is recognized (their owners can turn that off). The raw audio is deleted immediately after processing; your voice cannot be reconstructed from the template. It stays on this server, is never shared with anyone, and is deleted the moment you click delete or leave the team. Declining or deleting has no consequence: meetings and notes keep working, you simply appear by your Meet name or as SPEAKER_N.") }} <span class="mono">({{ notice_version }})</span></p>
 </div>
 {% endmacro %}
 
@@ -39,7 +39,7 @@
 </div>
 
 {% if just_connected %}
-<div class="notice notice-ok">{{ t("Calendar connected. Fred now joins your meetings automatically.") }}</div>
+<div class="notice notice-ok">{{ t("Calendar connected. Aplec now joins your meetings automatically.") }}</div>
 {% endif %}
 {% if error == "no_refresh_token" %}
 <div class="notice">{{ t("Google didn’t issue a long-lived token. Try connecting again, and complete the consent screen fully.") }}</div>
@@ -51,7 +51,7 @@
   <div class="settings-row">
     <div>
       <p class="settings-status"><span class="dot dot-ok"></span>{{ th("Connected as <strong>{account}</strong>", account=calendar_account) }}</p>
-      <p class="settings-help">{{ t("Fred watches this calendar, invites the notetaker to your Google Meet events and joins them automatically a moment before they start.") }}</p>
+      <p class="settings-help">{{ t("Aplec watches this calendar, invites the notetaker to your Google Meet events and joins them automatically a moment before they start.") }}</p>
     </div>
     <form method="post" action="/settings/calendar/disconnect">
       <button class="btn-secondary btn-s" type="submit">{{ t("Disconnect") }}</button>
@@ -61,7 +61,7 @@
   <div class="settings-row">
     <div>
       <p class="settings-status"><span class="dot"></span>{{ t("Not connected") }}</p>
-      <p class="settings-help">{{ t("Connect your Google Calendar so Fred can join your meetings automatically and take notes. You’ll be asked to allow access to your calendar events, which is all Fred needs.") }}</p>
+      <p class="settings-help">{{ t("Connect your Google Calendar so Aplec can join your meetings automatically and take notes. You’ll be asked to allow access to your calendar events, which is all Aplec needs.") }}</p>
     </div>
     <form method="post" action="/settings/calendar/connect">
       <button class="btn-primary" type="submit" {% if not google_ready %}disabled title="{{ t('Google OAuth is not configured') }}"{% endif %}>
@@ -74,8 +74,8 @@
 
 <section class="panel settings-panel">
   <h2 class="panel-title">{{ t("Auto-join") }}</h2>
-  <p class="settings-status">{{ t("Which meetings Fred joins by itself.") }}</p>
-  <p class="settings-help">{{ t("“Meetings I organized or accepted” keeps Fred out of team invites you haven’t RSVP’d to. “Never” turns automatic joining off entirely: use the browser extension or invite the bot manually.") }}</p>
+  <p class="settings-status">{{ t("Which meetings Aplec joins by itself.") }}</p>
+  <p class="settings-help">{{ t("“Meetings I organized or accepted” keeps Aplec out of team invites you haven’t RSVP’d to. “Never” turns automatic joining off entirely: use the browser extension or invite the bot manually.") }}</p>
   <form method="post" action="/settings/autojoin" class="lang-form-block">
     <div class="lang-grid" role="radiogroup" aria-label="{{ t('Auto-join policy') }}">
       {% for value, label in autojoin_policies.items() %}
@@ -94,7 +94,7 @@
 
 <section class="panel settings-panel">
   <h2 class="panel-title">{{ t("Interface language") }}</h2>
-  <p class="settings-status">{{ t("The language of Fred's own pages: menus, titles and buttons.") }}</p>
+  <p class="settings-status">{{ t("The language of Aplec's own pages: menus, titles and buttons.") }}</p>
   <p class="settings-help">{{ t("Meeting notes keep following the summary language below.") }}</p>
   <form method="post" action="/settings/ui-language" class="lang-form-block">
     <div class="lang-grid" role="radiogroup" aria-label="{{ t('Interface language') }}">
@@ -156,7 +156,7 @@
 <section class="panel settings-panel">
   <h2 class="panel-title">{{ t("Voiceprint") }}</h2>
   {% if voiceprint_enrolled_now %}
-  <div class="notice notice-ok">{{ t("Voiceprint enrolled. Fred can now name you in meeting notes by voice.") }}
+  <div class="notice notice-ok">{{ t("Voiceprint enrolled. Aplec can now name you in meeting notes by voice.") }}
     {% if voiceprint_warning %} {{ voiceprint_warning }}{% endif %}</div>
   {% endif %}
 
@@ -167,7 +167,7 @@
       <p class="settings-help">{{ t("{n}s of audio on file, stored only as a numeric voice template on this server. Delete it anytime; deletion is immediate.", n=my_print.seconds|round(0)|int) }}</p>
     </div>
     <form method="post" action="/settings/voiceprint/delete"
-          onsubmit='return confirm({{ t("Delete your voiceprint? Fred will stop naming you by voice.")|tojson }})'>
+          onsubmit='return confirm({{ t("Delete your voiceprint? Aplec will stop naming you by voice.")|tojson }})'>
       <button class="btn-secondary btn-s" type="submit">{{ t("Delete my voiceprint") }}</button>
     </form>
   </div>
@@ -187,7 +187,7 @@
   <div class="settings-row">
     <div>
       <p class="settings-status"><span class="dot"></span>{{ t("No voiceprint") }}</p>
-      <p class="settings-help">{{ t("Optional: enroll your voice so Fred can name you in notes even when several people share one microphone.") }}</p>
+      <p class="settings-help">{{ t("Optional: enroll your voice so Aplec can name you in notes even when several people share one microphone.") }}</p>
     </div>
   </div>
   <details class="vp-details"><summary class="settings-help">{{ t("Enroll now") }}</summary>
@@ -203,8 +203,8 @@
     <label class="check-line">
       <input type="checkbox" name="auto_share" value="on" {{ "checked" if auto_share }}>
       <span>
-        <span class="settings-status">{{ t("Share the meetings I record with the colleagues Fred recognizes in them") }}</span>
-        <span class="settings-help">{{ t("Read access (notes, transcript, Ask) for people with a Fred account whose enrolled voice Fred recognizes in the recording. Remove anyone from a meeting's Access panel and Fred will not add them back.") }}</span>
+        <span class="settings-status">{{ t("Share the meetings I record with the colleagues Aplec recognizes in them") }}</span>
+        <span class="settings-help">{{ t("Read access (notes, transcript, Ask) for people with an Aplec account whose enrolled voice Aplec recognizes in the recording. Remove anyone from a meeting's Access panel and Aplec will not add them back.") }}</span>
       </span>
     </label>
     <button class="btn-secondary btn-s" type="submit">{{ t("Save") }}</button>

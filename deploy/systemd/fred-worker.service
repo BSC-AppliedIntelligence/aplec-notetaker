@@ -1,7 +1,7 @@
 # Copy to ~/.config/systemd/user/ (docs/INSTALL.md, section 8). Assumes the
 # checkout at ~/fred-notetaker: change the three paths if it is elsewhere.
 [Unit]
-Description=Fred worker (transcription, speakers, notes)
+Description=Aplec worker (transcription, speakers, notes)
 
 [Service]
 WorkingDirectory=%h/fred-notetaker

@@ -189,7 +189,7 @@ class Settings(BaseSettings):
     gcal_credentials: Path | None = Field(default=None, alias="FRED_LIVE_GCAL_CREDENTIALS")
     autojoin_lead_seconds: int = Field(default=90, alias="FRED_LIVE_AUTOJOIN_LEAD_SECONDS")
     autojoin_poll_seconds: int = Field(default=60, alias="FRED_LIVE_AUTOJOIN_POLL_SECONDS")
-    autojoin_bot_name: str = Field(default="Fred Notetaker", alias="FRED_LIVE_AUTOJOIN_BOT_NAME")
+    autojoin_bot_name: str = Field(default="Aplec Notetaker", alias="FRED_LIVE_AUTOJOIN_BOT_NAME")
     # Launch bots signed in as the bot's Google account (requires the one-time
     # browser_session login; see docs/INSTALL.md, section 11).
     autojoin_authenticated: bool = Field(default=True, alias="FRED_LIVE_AUTOJOIN_AUTHENTICATED")

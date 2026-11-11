@@ -1,4 +1,4 @@
-// Fred content script: call detection, named-speaker events, status chip.
+// Aplec content script: call detection, named-speaker events, status chip.
 // Multi-platform: Google Meet, Microsoft Teams (web), Zoom (web client).
 // Each platform is an ADAPTER (call detection, meeting id, title, speaker
 // detection); the engine (event queue, chip, diagnostics, SW messaging) is
@@ -585,7 +585,7 @@ function sendDiagnostics(reason) {
 
 const CHAT_DEFAULTS = {
   noticeEnabled: true,
-  noticeText: "🔴 Fred Notetaker is recording this meeting to produce notes. · Fred Notetaker está grabando esta reunión para generar notas.",
+  noticeText: "🔴 Aplec Notetaker is recording this meeting to produce notes. · Aplec Notetaker está grabando esta reunión para generar notas.",
   chatCapture: true,
 };
 // the recorder's own messages show under a localized "You"
@@ -927,7 +927,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 function showChip() {
   if (chip) return;
   chip = document.createElement("div");
-  chip.textContent = "● Fred is recording";
+  chip.textContent = "● Aplec is recording";
   Object.assign(chip.style, {
     position: "fixed", bottom: "88px", right: "16px", zIndex: 999999,
     background: "rgba(20,17,13,.92)", color: "#F4EFE7",
