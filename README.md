@@ -8,11 +8,6 @@ machine, or any OpenAI-compatible API, your own server or a hosted one. Audio is
 always processed on your machine; with a hosted model, the transcripts go to
 that provider.
 
-Aplec Notetaker takes its name from the Catalan *aplec*, a gathering (from
-*aplegar*, to gather). It was called Fred Notetaker until November 2026, and
-internal names keep the old one: the `fred_live_worker` and `fred_live_web`
-packages, the `FRED_LIVE_*` settings and the `fred-*` service units.
-
 ## What it does
 
 - **Capture without a bot**: a Chrome extension records the meeting tab and your
