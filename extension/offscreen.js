@@ -6,8 +6,8 @@
 //   15s timeslice). Never summed here: when another laptop is the room's
 //   microphone in the call, the tab brings the room back a fraction of a second
 //   after the mic heard it, and only the worker, with the two apart, can use one
-// - CRITICAL: tabCapture mutes the tab for the user; we route the tab stream
-//   back to the speakers so the meeting stays audible.
+// - CRITICAL: tabCapture mutes the tab for the user, so playToUser plays the
+//   meeting back, outside the recording graph.
 //
 // Upload pipeline (v0.3.8): chunks go through a pending[] FIFO drained by a
 // single-flight loop that RETRIES on failure (VPN drop mid-meeting must not
@@ -24,13 +24,13 @@
 
 let recorder = null;
 let sessionId = null;
-let contexts = [];
 let seq = 0;
 
 const MAX_PENDING_CHUNKS = 240;   // ~1h of 15s chunks
 const RETRY_BASE_MS = 5000;
 const RETRY_CAP_MS = 25000;       // stays inside the SW's 30s idle window
 const STOP_DRAIN_MS = 120000;
+const PLAYBACK_START_MS = 2000;   // the <audio> element's chance to start
 
 let pending = [];                 // [{blob, seq, sid, nonce}]
 let drainRunning = false;
@@ -131,6 +131,8 @@ async function start(streamId, sid, partNonce) {
   tabStream.getAudioTracks().forEach((track) => {
     track.onended = () => { console.warn("tab audio track ended; stopping recorder"); stop(); };
   });
+  // The tab is muted for the user from this moment: play it back first.
+  const stopPlayback = playToUser(tabStream);
   let micStream = null;
   let micOk = false;
   try {
@@ -141,7 +143,6 @@ async function start(streamId, sid, partNonce) {
   }
 
   const ctx = new AudioContext();
-  contexts = [ctx];
   const destination = ctx.createMediaStreamDestination();
   destination.channelCount = 2;
   // Each input of a merger is one channel: a stereo tab is downmixed on the way
@@ -151,7 +152,6 @@ async function start(streamId, sid, partNonce) {
 
   const tabSource = ctx.createMediaStreamSource(tabStream);
   tabSource.connect(merger, 0, 1);
-  tabSource.connect(ctx.destination); // keep the meeting audible to the user
 
   if (micStream) {
     ctx.createMediaStreamSource(micStream).connect(merger, 0, 0);
@@ -197,7 +197,10 @@ async function start(streamId, sid, partNonce) {
     } catch (e) {}
     tabStream.getTracks().forEach((t) => t.stop());
     micStream?.getTracks().forEach((t) => t.stop());
-    contexts.forEach((c) => c.close());
+    // This session's own, by closure: a reused document may already hold the
+    // next session's.
+    stopPlayback();
+    ctx.close();
   };
   recorder.start(15000);
   // Speaker-event offsets are computed against this instant, all on the
@@ -208,6 +211,46 @@ async function start(streamId, sid, partNonce) {
 function stop() {
   if (recorder && recorder.state !== "inactive") recorder.stop();
   recorder = null;
+}
+
+// Plays the meeting back to the user and returns the function that stops it.
+// An <audio> element plays it apart from the recording graph: played from the
+// recording's own AudioContext, at Web Audio's smallest buffers, the meeting
+// can crackle. If the element refuses, or has not started after
+// PLAYBACK_START_MS, a Web Audio context of its own with large buffers takes
+// over. Never both: the element is detached first, so a late start
+// cannot double the meeting. A pause from outside (a media key, the browser)
+// plays it again, or hands over to Web Audio.
+function playToUser(stream) {
+  const element = new Audio();
+  element.srcObject = stream;
+  let started = false;
+  let stopped = false;
+  let fallback = null;
+  const useWebAudio = (why) => {
+    if (fallback || stopped) return;
+    console.warn("tab playback: <audio> did not play, using Web Audio", why);
+    element.pause();
+    element.srcObject = null;
+    fallback = new AudioContext({ latencyHint: "playback" });
+    fallback.createMediaStreamSource(stream).connect(fallback.destination);
+  };
+  element.onpause = () => {
+    if (stopped || fallback || !stream.active) return;
+    element.play().catch(useWebAudio);
+  };
+  const timer = setTimeout(() => { if (!started) useWebAudio("not started"); }, PLAYBACK_START_MS);
+  element.play().then(
+    () => { started = true; clearTimeout(timer); },
+    (e) => { clearTimeout(timer); useWebAudio(e); },
+  );
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+    element.pause();
+    element.srcObject = null;
+    fallback?.close();
+  };
 }
 
 function blobToBase64(blob) {

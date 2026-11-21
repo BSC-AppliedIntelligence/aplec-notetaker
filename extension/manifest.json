@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Aplec: meeting notes without the bot",
-  "version": "0.4.0",
+  "version": "0.4.2",
   "description": "Records Meet, Teams and Zoom calls in your browser and sends them to your team's self-hosted Aplec for notes with speaker names.",
   "permissions": [
     "tabCapture",
