@@ -13,8 +13,8 @@ that provider.
 - **Capture without a bot**: a Chrome extension records the meeting tab and your
   microphone (on separate channels) and streams them to your server. Works with
   Google Meet, and with Teams and Zoom joined from the browser. Optionally, a
-  **meeting bot** ([Vexa](https://github.com/Vexa-ai/vexa)) joins the meetings on
-  your Google Calendar instead.
+  **meeting bot** ([Vexa](https://github.com/Vexa-ai/vexa)) joins the Google Meet
+  meetings on your Google Calendar instead.
 - **Transcription** with whisper.cpp (large-v3), including meetings that switch
   between languages: each speaker turn is transcribed in its own language, and
   Whisper's habit of inventing a language, or translating speech into another
@@ -28,8 +28,8 @@ that provider.
   answers questions about one meeting from its transcript.
 - **A web app for the whole team**: Google sign-in, admin approval of new users,
   per-user settings, search, speaker renaming, sharing with people or teams, and
-  optional automatic sharing with the colleagues recognized by voice in a
-  meeting. Interface in English, Spanish and Catalan.
+  automatic sharing with the colleagues recognized by voice in a meeting (on by
+  default, each owner can turn it off). Interface in English, Spanish and Catalan.
 
 ## Requirements
 
@@ -37,7 +37,7 @@ that provider.
 | --- | --- |
 | GPU | NVIDIA with CUDA. Transcription and diarization always run on it and peak around 8 GB. The default local LLM (Qwen3.8-27B, Q6_K) needs about 25 GB more; with a remote or hosted LLM it is not needed. Developed on an NVIDIA GB10 (ARM64, unified memory). |
 | Disk | About 4 GB of models, plus 23 GB for the local LLM. Meeting audio is deleted after 15 days by default; transcripts and notes are kept. |
-| Software | Linux, Python 3.12, git, cmake and a C++ toolchain (whisper.cpp is built from source). Docker only for the meeting bot. |
+| Software | Linux, the CUDA toolkit, Python 3.12, git, cmake and a C++ toolchain (whisper.cpp is built from source). Docker only for the meeting bot. |
 | Accounts | A Hugging Face account that accepted the conditions of `pyannote/speaker-diarization-community-1`, and a Google Cloud OAuth client for sign-in. |
 
 ## Install
@@ -75,8 +75,8 @@ language → notes from the transcript → web app.
 ## Repository layout
 
 ```
-aplec_worker/   worker: pipeline, ASR, language ID, diarization, voiceprints, notes, capture, bot integration
-aplec_web/      web app: sign-in, pages, translations, static assets
+aplec_worker/       worker: pipeline, ASR, language ID, diarization, voiceprints, notes, capture, bot integration
+aplec_web/          web app: sign-in, pages, translations, static assets
 extension/          Chrome extension (Manifest V3)
 tools/              whisper-batch (keeps whisper.cpp loaded per meeting), Nemotron runner
 patches/            whisper.cpp second-language patch, Vexa deployment patch

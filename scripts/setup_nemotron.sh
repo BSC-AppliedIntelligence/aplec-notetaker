@@ -16,7 +16,9 @@ if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
     exit 1
 fi
 
-python3 -m venv "$VENV"
+# The worker's own Python: the .pth below loads the worker's packages, which only
+# import under the same Python version.
+"$ROOT/.venv/bin/python" -m venv "$VENV"
 "$VENV/bin/pip" install --quiet --requirement "$ROOT/requirements.nemotron.txt"
 
 # torch and accelerate come from the worker: several GB, and the CUDA build known

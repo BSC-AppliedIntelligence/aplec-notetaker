@@ -49,9 +49,10 @@ out the store link instead of the zip. Installing from the store gives a new
 extension ID: people should remove their unpacked copy, grant the microphone
 again in Options and paste their token again.
 
-The site advertises the extension version of the build it serves. After publishing
-a new version, wait until the store has rolled it out before redeploying the site;
-otherwise people with the previous store version are told to update by hand.
+The site announces the extension version of the build it serves, and installed
+extensions show a notice when a newer one exists: store installs are told that
+Chrome updates them on its own, hand-installed ones to download the new zip from
+Settings.
 
 ### Listing answers
 

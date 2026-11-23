@@ -12,7 +12,7 @@ nothing needs to live anywhere in particular.
 ## 1. Host prerequisites
 
 - An NVIDIA driver and the CUDA toolkit (`nvcc`), matching each other.
-- Python 3.12 with venv, `git`, `cmake`, a C++ compiler, `curl` and `zip`.
+- Python 3.12 with venv, `git`, `cmake`, a C++ compiler, `curl`, `zip` and `unzip`.
 - For voiceprints with the ReDimNet2 model (optional, section 12): the Python
   headers (`python3.12-dev` or equivalent), because `wespeaker` builds `hdbscan`
   from source on some platforms.
@@ -29,6 +29,8 @@ python3.12 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.worker.txt -r requirements.web.txt
 pip uninstall -y torchcodec   # see "Known problems"; pip may pull it back with pyannote
+cp .env.worker.example .env.worker   # the configuration, filled in from here on
+chmod 600 .env.worker
 ```
 
 Check that PyTorch sees the GPU: `python -c 'import torch; print(torch.cuda.is_available())'`
@@ -45,6 +47,7 @@ requirements again.
 ```bash
 git clone https://github.com/ggml-org/whisper.cpp vendor/whisper.cpp
 cd vendor/whisper.cpp
+git checkout 6fc7c33b4c3a2cec83e4b65abd5e96a890480375   # the commit Aplec was tested with
 cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 cd ../..
@@ -56,8 +59,10 @@ reloading it for every speaker turn, with the same output as `whisper-cli`. The
 script also applies `patches/whisper-cpp-second-language.patch`, which lets Aplec
 give Whisper a second language and stops it from translating what is said in
 that language. If a future whisper.cpp refuses the patch, the build still works
-without that feature. After updating whisper.cpp, rerun the script, restart the
-worker and check that both engines still agree:
+without that feature. To update whisper.cpp, discard the patch first
+(`git -C vendor/whisper.cpp checkout -- .`), check out the new commit and rebuild
+it; then rerun the script, restart the worker and check that both engines still
+agree:
 
 ```bash
 .venv/bin/python scripts/verify_whisper_batch.py <any recording>
@@ -115,11 +120,14 @@ spend the whole answer budget reasoning.
 others), through its OpenAI-compatible endpoint:
 
 ```bash
-APLEC_LLM_BASE_URL=https://api.openai.com/v1   # the provider's base, usually ending in /v1
+# The provider's base, usually ending in /v1
+APLEC_LLM_BASE_URL=https://api.openai.com/v1
 APLEC_LLM_MODEL=<the provider's model name>
 APLEC_LLM_API_KEY=<your API key>
-APLEC_LLM_DISABLE_THINKING=false   # true sends a llama.cpp/vLLM field that hosted APIs refuse
-APLEC_LLM_CTX_SIZE=128000          # the model's context window
+# true would send a llama.cpp/vLLM field that hosted APIs refuse
+APLEC_LLM_DISABLE_THINKING=false
+# The model's context window
+APLEC_LLM_CTX_SIZE=128000
 ```
 
 When a provider's route is not under `/v1` (Gemini's is
@@ -141,12 +149,8 @@ voiceprints need the GPU anyway.
 
 ## 6. Configuration
 
-```bash
-cp .env.worker.example .env.worker
-chmod 600 .env.worker
-```
-
-Both the worker and the web app read this file. Set at least:
+Both the worker and the web app read `.env.worker` (created in section 2). Set at
+least:
 
 | Setting | Value |
 | --- | --- |
@@ -158,7 +162,11 @@ Both the worker and the web app read this file. Set at least:
 | `APLEC_HF_TOKEN`, `HF_TOKEN` | From section 4 |
 | `APLEC_APP_PORT` | `18088`: the port the web app and the meeting bot expect |
 
-Everything else has working defaults; the file documents each setting.
+Everything else has working defaults; the file documents each setting. Keep
+comments on lines of their own: systemd reads anything after a value, a trailing
+`# ...` included, as part of it. The services read the file when they start, so
+after changing it restart the worker and the web app, and the watcher if you run
+it (section 11).
 
 ## 7. Google sign-in
 
@@ -203,7 +211,9 @@ port closed to everything but the host and its containers.
 
 The web app listens on `127.0.0.1:18091`. Put it behind any reverse proxy that
 terminates HTTPS (nginx, Caddy, Traefik) on the host name of
-`APLEC_WEB_BASE_URL`, forwarding the usual `X-Forwarded-*` headers. Sign-in
+`APLEC_WEB_BASE_URL`, passing on the original `Host` header and the usual
+`X-Forwarded-*` headers. nginx replaces `Host` unless told
+`proxy_set_header Host $host;`, and sign-in then redirects in a loop. Sign-in
 cookies become `Secure` automatically when that URL is https. The site also
 relays the extension's uploads (`/capture/*`) to the worker, so this one host name
 is all the extension needs.
@@ -215,14 +225,31 @@ to an address where the container can reach the worker.
 containers (build `Dockerfile.worker`, which compiles whisper.cpp; set
 `CUDA_ARCH` for your GPU).
 
+The native install above is the tested path. The containers have only run on an
+ARM64 host (NVIDIA GB10), and they leave some things to you:
+
+- `Dockerfile.worker` installs the ARM64 CUDA stub library and Docker CLI; on
+  x86_64, change those lines.
+- The worker container mounts `models/` read-only, but the language-ID model
+  downloads into it on first use: remove `:ro` from that mount.
+- The web image holds the extension zips present when it was built: build it
+  after section 10, and again for each new extension version.
+- The containers run as root, so what they write in `data/` (calendar tokens
+  included) belongs to root: run them as your user (`user: "<uid>:<gid>"`) when
+  the calendar watcher runs natively.
+- Approving people on the **Users** page needs the worker to reach Vexa's admin
+  API at `127.0.0.1:8057` and its token (`VEXA_ADMIN_TOKEN`, or
+  `vendor/vexa/.env`), which the compose file does not give the worker container.
+
 **Users.** `APLEC_WEB_USERS` lists `email:number[:admin]` entries, separated
 by commas: the number identifies the person's meetings, and admins see every
 meeting. With the meeting bot installed (section 11), new people simply sign in:
 their request waits on the **Users** page until an admin approves it, which
 creates their bot account too and adds them to `data/users.json`. Without the
 bot, add each person to `APLEC_WEB_USERS` with a number of their own and
-restart the web app. Removing someone from either list revokes their session and
-their extension token on the next request.
+restart the web app and the worker. Removing someone revokes their session and
+their extension token on the next request (for `APLEC_WEB_USERS`, after the same
+restart).
 
 ## 10. The browser extension
 
@@ -282,11 +309,14 @@ TRANSCRIPTION_SERVICE_URL=http://transcription-disabled.invalid/v1/audio/transcr
 ```
 
 The last line keeps Vexa in recording-only mode: Aplec transcribes, and no audio
-goes to Vexa's hosted transcription service. Then build the bot image and start
-Vexa:
+goes to Vexa's hosted transcription service. Then build the bot image and Vexa's
+services from the patched source (without the `build`, Compose pulls Vexa's
+published images, which lack the patch), and start Vexa:
 
 ```bash
+mkdir -p ../../recordings   # Docker would create it owned by root
 docker build -t aplec-notetaker -f services/vexa-bot/Dockerfile ./services/vexa-bot
+docker compose --env-file .env -f deploy/compose/docker-compose.yml build
 docker compose --env-file .env -f deploy/compose/docker-compose.yml up -d
 cd ../..
 ```
@@ -319,9 +349,8 @@ by hand and Meet labels them as outsiders. For signed-in bots, create a Google
 account for the bot, log it in once through a Vexa browser session (see Vexa's
 documentation on browser sessions; Aplec's patch keeps the session alive), and
 set `APLEC_BOT_GOOGLE_ACCOUNT` to its address. The watcher then also invites
-that account to each event, so the bot is a guest of the meeting. To stay
-anonymous, set `APLEC_AUTOJOIN_AUTHENTICATED=false` and
-`APLEC_AUTOJOIN_INVITE_BOT=false`.
+that account to each event, so the bot is a guest of the meeting. While
+`APLEC_BOT_GOOGLE_ACCOUNT` is empty, the bots join anonymously.
 
 After any reset of the submodule, apply the patch again and rebuild the bot image.
 
@@ -332,6 +361,9 @@ microphone in a room, and anyone the page indicators miss. Each person enrolls
 in **Settings → Voiceprint**, behind a consent notice; only a numeric template is
 kept, never the recording, and they can delete it at any time. Admins invite
 people from the **Voiceprints** page but never upload audio for someone else.
+A meeting is also shared, read-only, with every registered user recognized by
+voice in it. Each owner can turn this off in Settings, and
+`APLEC_AUTO_SHARE=false` turns it off for everyone.
 
 The default backend, ECAPA from SpeechBrain, needs nothing else. ReDimNet2
 identifies better and is used automatically when installed:

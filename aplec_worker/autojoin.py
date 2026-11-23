@@ -245,7 +245,9 @@ def bot_launch_payload(settings: Settings, meet_code: str) -> dict:
             "max_time_left_alone": settings.autojoin_alone_timeout_seconds * 1000,
         },
     }
-    if settings.autojoin_authenticated:
+    # A signed-in join needs the bot's Google account and its stored browser
+    # session; without an account the bot joins anonymously.
+    if settings.autojoin_authenticated and settings.bot_google_account:
         payload["authenticated"] = True
     return payload
 
@@ -268,8 +270,8 @@ def discover_calendar_tokens(settings: Settings) -> list[Path]:
 
 class AutojoinWatcher:
     def __init__(self, settings: Settings):
-        if not settings.vexa_api_key:
-            raise SystemExit("VEXA_API_KEY is not set (user-scoped key required to launch bots)")
+        # No VEXA_API_KEY check: bots launch with each calendar owner's key
+        # (api_key_for_calendar); only the legacy token without an email needs it.
         if not settings.vexa_api_base_url:
             raise SystemExit("VEXA_API_BASE_URL is not set")
         self.settings = settings
@@ -350,6 +352,10 @@ class AutojoinWatcher:
 
         email = calendar_owner_email(token_path)
         if email is None:
+            if not self.settings.vexa_api_key:
+                logger.error("Calendar %s has no owner email and VEXA_API_KEY is not set; NOT launching",
+                             Path(token_path).name)
+                return None
             return self.settings.vexa_api_key.get_secret_value()
         key = load_vexa_keys(self.settings.data_dir).get(email.lower())
         if key:

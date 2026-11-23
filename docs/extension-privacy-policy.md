@@ -27,7 +27,12 @@ data.
   sender's displayed name, so the notes can include what was shared there.
   Messages written before the recording started are not read, private/direct
   messages are skipped, and the Microsoft Teams chat is not read at all. This
-  can be turned off in the extension's Options. No other page content is read.
+  can be turned off in the extension's Options.
+- **Meeting details**: the meeting's title and code, to name the meeting in
+  your history, and a few technical details of the meeting page when
+  recording starts and stops (such as how many participant tiles are
+  visible), to diagnose a recording that comes without speaker names.
+  Nothing else on the page is read.
 - **Recording notice**: when you start recording, the extension posts a short
   message in the meeting chat, on your behalf, telling the other participants
   that the meeting is being recorded. Whether the notice was posted is recorded
@@ -52,6 +57,10 @@ that runs either on that machine or on another server operated by the same
 organization; it receives the transcript, the meeting chat and questions
 asked about the meeting, never the audio. Consult your team's administrator
 for the details of your deployment.
+<!-- With a hosted model (docs/INSTALL.md, section 5, option C), say so instead:
+     "The notes are written by <provider>'s hosted language model, which receives
+     the transcript, the meeting chat and questions asked about the meeting,
+     never the audio." -->
 
 ## Data retention in the browser
 

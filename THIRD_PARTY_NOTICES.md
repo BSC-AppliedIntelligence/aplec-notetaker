@@ -8,6 +8,7 @@ files, each under its own license, whose texts are in [licenses/](licenses/):
 | [htmx](https://htmx.org) 2.0.7 | `aplec_web/static/htmx.min.js` | Zero-Clause BSD ([licenses/htmx-0BSD.txt](licenses/htmx-0BSD.txt)) |
 | [Inter](https://github.com/rsms/inter), variable font | `aplec_web/static/fonts/` | SIL Open Font License 1.1 ([licenses/Inter-OFL.txt](licenses/Inter-OFL.txt)) |
 | [flag-icons](https://github.com/lipis/flag-icons) | `aplec_web/static/flags/` | MIT ([licenses/flag-icons-MIT.txt](licenses/flag-icons-MIT.txt)) |
+| [pyannote.audio](https://github.com/pyannote/pyannote-audio) 4.0, adapted | `get_embeddings_skip_silent` in `aplec_worker/diarization.py` | MIT ([licenses/pyannote-audio-MIT.txt](licenses/pyannote-audio-MIT.txt)) |
 
 `patches/` holds changes to [whisper.cpp](https://github.com/ggml-org/whisper.cpp)
 (MIT) and [Vexa](https://github.com/Vexa-ai/vexa) (Apache-2.0). Vexa is a git
