@@ -9,7 +9,8 @@
 #   * model weights (~80GB) — mounted at /app/models;
 #   * meeting data and recordings — mounted, because they are the product.
 #
-# Build (ARM64 host; the CUDA compile dominates, ~20 min the first time):
+# Build on the host that will run it, ARM64 or x86_64, with CUDA_ARCH set for its
+# GPU (see below); the CUDA compile dominates, ~20 min the first time:
 #   docker build -t aplec-notetaker-worker -f Dockerfile.worker .
 
 ARG CUDA_VERSION=13.0.0
@@ -43,8 +44,9 @@ RUN git init -q . \
 ARG CUDA_ARCH=121
 # libcuda.so is the DRIVER library: it lives on the host, not in the image, so
 # the link fails on `undefined reference to cuGetErrorString` unless pointed at
-# the stub NVIDIA ships for exactly this purpose. On ARM64 it is under
-# targets/sbsa-linux, not the x86 lib64. The symlink makes plain -lcuda
+# the stub NVIDIA ships for exactly this purpose: under targets/sbsa-linux on
+# ARM64 and targets/x86_64-linux on x86_64 (CUDA_STUBS overrides the path, found
+# from the build's architecture otherwise). The symlink makes plain -lcuda
 # resolve; the explicit flag makes the SHARED library (libggml-cuda.so) request
 # it, which is where the undefined symbol actually lives. At runtime the real
 # driver is injected by the NVIDIA container runtime, never this stub.
@@ -52,21 +54,25 @@ ARG CUDA_ARCH=121
 # and libggml*.so next to the binary, and copying just the executable into the
 # runtime stage gives 'libwhisper.so.1: cannot open shared object file'. One
 # self-contained binary is the right shape for a container anyway.
-ARG CUDA_STUBS=/usr/local/cuda/targets/sbsa-linux/lib/stubs
+ARG CUDA_STUBS=
 # whisper-batch (tools/whisper-batch) keeps the model loaded across a meeting's
 # span calls; it is built as one more whisper.cpp example, so it links the same
 # (static) libraries as whisper-cli and gives the same output. The patch adds the
 # second language tag to libwhisper; it is a no-op for whisper-cli.
 COPY tools/whisper-batch examples/whisper-batch
 COPY patches/whisper-cpp-second-language.patch /tmp/
-RUN git apply /tmp/whisper-cpp-second-language.patch \
+RUN arch="$(uname -m)" \
+    && case "$arch" in aarch64) target=sbsa-linux ;; x86_64) target=x86_64-linux ;; \
+        *) echo "unsupported architecture: $arch" >&2; exit 1 ;; esac \
+    && stubs="${CUDA_STUBS:-/usr/local/cuda/targets/${target}/lib/stubs}" \
+    && git apply /tmp/whisper-cpp-second-language.patch \
     && echo 'add_subdirectory(whisper-batch)' >> examples/CMakeLists.txt \
-    && ln -sf "${CUDA_STUBS}/libcuda.so" /usr/lib/aarch64-linux-gnu/libcuda.so \
+    && ln -sf "${stubs}/libcuda.so" "/usr/lib/${arch}-linux-gnu/libcuda.so" \
     && cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCH}" \
         -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_SHARED_LINKER_FLAGS="-L${CUDA_STUBS} -lcuda" \
-        -DCMAKE_EXE_LINKER_FLAGS="-L${CUDA_STUBS} -lcuda" \
+        -DCMAKE_SHARED_LINKER_FLAGS="-L${stubs} -lcuda" \
+        -DCMAKE_EXE_LINKER_FLAGS="-L${stubs} -lcuda" \
     && cmake --build build --target whisper-cli whisper-batch -j"$(nproc)"
 
 # ---- stage 2: build the Python environment ----------------------------------
@@ -83,7 +89,7 @@ ENV VIRTUAL_ENV=/opt/venv PATH=/opt/venv/bin:$PATH
 RUN python3 -m venv "$VIRTUAL_ENV" && pip install --no-cache-dir --upgrade pip
 
 # The lock is the environment validated on the host (torch 2.11 + CUDA 13 from
-# plain PyPI: the aarch64 wheels are CUDA-enabled, no extra index needed).
+# plain PyPI, whose Linux wheels are CUDA-enabled on ARM64 and x86_64 alike).
 # The loose requirements.worker.txt stays for development.
 COPY requirements.worker.lock.txt .
 RUN pip install --no-cache-dir -r requirements.worker.lock.txt \
@@ -99,7 +105,7 @@ FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-runtime-${UBUNTU}
 ARG DOCKER_CLI_VERSION=27.5.1
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 ffmpeg ca-certificates curl \
-    && curl -fsSL "https://download.docker.com/linux/static/stable/aarch64/docker-${DOCKER_CLI_VERSION}.tgz" \
+    && curl -fsSL "https://download.docker.com/linux/static/stable/$(uname -m)/docker-${DOCKER_CLI_VERSION}.tgz" \
        | tar -xz -C /usr/local/bin --strip-components=1 docker/docker \
     && apt-get purge -y curl && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*

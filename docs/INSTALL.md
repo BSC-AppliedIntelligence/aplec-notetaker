@@ -225,11 +225,10 @@ to an address where the container can reach the worker.
 containers (build `Dockerfile.worker`, which compiles whisper.cpp; set
 `CUDA_ARCH` for your GPU).
 
-The native install above is the tested path. The containers have only run on an
-ARM64 host (NVIDIA GB10), and they leave some things to you:
+The native install above is the tested path. The images build on ARM64 and
+x86_64 but have only run on an ARM64 host (NVIDIA GB10), and they leave some
+things to you:
 
-- `Dockerfile.worker` installs the ARM64 CUDA stub library and Docker CLI; on
-  x86_64, change those lines.
 - The worker container mounts `models/` read-only, but the language-ID model
   downloads into it on first use: remove `:ro` from that mount.
 - The web image holds the extension zips present when it was built: build it

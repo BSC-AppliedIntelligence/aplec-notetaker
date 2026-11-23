@@ -85,7 +85,7 @@ class Settings(BaseSettings):
     voiceprint_margin: float = Field(default=0.08, alias="APLEC_VOICEPRINT_MARGIN")
     # The threshold for someone with no tile on the page, who is not the meeting's
     # owner either: there the voice is the only evidence. An unenrolled guest scored
-    # 0.607 and 0.621 against a colleague who was not in the meeting (2026-11-04);
+    # 0.607 and 0.621 against a colleague who was not in the meeting;
     # on 22 meetings this unnames 2 of 32 real people heard without a tile.
     voiceprint_off_page_threshold: float = Field(
         default=0.65, alias="APLEC_VOICEPRINT_OFF_PAGE_THRESHOLD"
@@ -108,7 +108,7 @@ class Settings(BaseSettings):
     # Automatic sharing: each meeting is shared,
     # read only, with the registered users recognized BY VOICE in it; on by
     # default, every owner can turn it off in Settings. Stricter than naming a
-    # speaker: of the 144 matches accepted since 2026-10-01 (0.590-0.934,
+    # speaker: of the 144 matches measured (0.590-0.934,
     # median 0.826) only the weakest falls below 0.60, and the highest
     # rejected score was 0.532. The speech minimum keeps a short, noisy
     # cluster from opening a meeting to anyone.

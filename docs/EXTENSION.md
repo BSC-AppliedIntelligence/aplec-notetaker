@@ -77,9 +77,10 @@ Settings.
     `teams.microsoft.com`, `teams.live.com`, `*.zoom.us`) to detect the call and
     read who is speaking; your Aplec site and localhost, to upload.
   - Microphone: record the user's own voice, granted on the Options page.
-- **Data use**: the extension handles audio, website content (participant names
-  and who is speaking) and personal communications (the meeting chat after
-  recording starts, with sender names, unless turned off in Options). All of it
+- **Data use**: the extension handles audio, website content (participant names,
+  who is speaking, the meeting's title and code) and personal communications
+  (the meeting chat after recording starts, with sender names, unless turned off
+  in Options). All of it
   goes only to the server the user configures: nothing to the developer or to
   third parties, no sale, no advertising, encrypted in transit. The privacy policy
   you host must say the same; reviewers compare the listing, the policy and what

@@ -1278,9 +1278,8 @@ async def capture_proxy(path: str, request: Request):
     }
     # Keep the query string: chunk uploads carry ?part=<nonce>&seq=<n>, which
     # is what lets the worker drop duplicate retries and a previous recorder's
-    # late chunks (append_chunk_dedup). Dropping it here silently put every
-    # capture on the legacy append-everything path (field, 2026-10-23: no
-    # session had ever recorded a last_seq).
+    # late chunks (append_chunk_dedup). Dropping it here would silently put
+    # every capture on the legacy append-everything path.
     query = request.url.query
     target = f"{settings.worker_url.rstrip('/')}/capture/{path}" + (f"?{query}" if query else "")
     try:

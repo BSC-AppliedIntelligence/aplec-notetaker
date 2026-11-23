@@ -50,6 +50,7 @@ git clone https://github.com/BSC-AppliedIntelligence/aplec-notetaker.git && cd a
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.worker.txt -r requirements.web.txt && pip uninstall -y torchcodec
 git clone https://github.com/ggml-org/whisper.cpp vendor/whisper.cpp
+git -C vendor/whisper.cpp checkout 6fc7c33b      # the commit Aplec was tested with
 (cd vendor/whisper.cpp && cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build -j)
 ./scripts/build_whisper_batch.sh
 ./scripts/download_models.sh --llm          # drop --llm when the LLM runs elsewhere

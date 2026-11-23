@@ -253,8 +253,8 @@ def _coerce_string_lists(data: dict[str, Any]) -> dict[str, Any]:
 
 # A remote endpoint (for example an Open WebUI on the organization's network)
 # can blip: a VPN hiccup, a restart, a proxy's 502 while the backend reloads, or
-# Open WebUI's 400 "Model not found", answered once on 2026-11-03 between calls
-# that worked. Those are retried after a pause (a model name that is really
+# Open WebUI's 400 "Model not found", which it can answer between calls
+# that work. Those are retried after a pause (a model name that is really
 # wrong fails after the last one). Anything else (401 wrong key, 400 prompt too
 # long, a read timeout after llm_timeout_seconds) fails at once, as before.
 _RETRY_STATUS = frozenset({429, 500, 502, 503, 504})
