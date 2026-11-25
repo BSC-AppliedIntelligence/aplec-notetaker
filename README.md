@@ -1,3 +1,5 @@
+<img width="1672" height="941" alt="Aplec Notetaker - Home" src="https://github.com/user-attachments/assets/3e993733-f765-4e91-8b88-e01402525fbc" />
+
 # Aplec Notetaker
 
 Self-hosted meeting notes for a team. Aplec records Google Meet, Microsoft Teams and
@@ -54,6 +56,8 @@ git -C vendor/whisper.cpp checkout 6fc7c33b      # the commit Aplec was tested w
 (cd vendor/whisper.cpp && cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build -j)
 ./scripts/build_whisper_batch.sh
 ./scripts/download_models.sh --llm          # drop --llm when the LLM runs elsewhere
+git clone https://github.com/ggml-org/llama.cpp vendor/llama.cpp   # only for a local LLM
+(cd vendor/llama.cpp && cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build -j --target llama-server)
 cp .env.worker.example .env.worker          # then fill in the secrets (see the guide)
 # run the services: deploy/systemd/ has user units, or scripts/run_*.sh by hand
 ./scripts/package_extension.sh              # the extension, pointed at APLEC_WEB_BASE_URL
