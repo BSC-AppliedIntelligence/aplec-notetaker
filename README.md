@@ -1,4 +1,7 @@
-<img width="1672" height="941" alt="Aplec Notetaker - Home" src="https://github.com/user-attachments/assets/3e993733-f765-4e91-8b88-e01402525fbc" />
+<p align="center">
+  <img width="49%" alt="Aplec Notetaker - Home" src="https://github.com/user-attachments/assets/3e993733-f765-4e91-8b88-e01402525fbc" />
+  <img width="49%" alt="Aplec Notetaker - Meeting" src="https://github.com/user-attachments/assets/6fa57bec-05dc-44b0-a3d8-cd0f159b6ced" />
+</p>
 
 # Aplec Notetaker
 
