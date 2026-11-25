@@ -23,7 +23,6 @@ Enroll: python -m aplec_worker.enroll --name "Ada" sample1.wav sample2.m4a
 """
 from __future__ import annotations
 
-import contextlib
 import json
 import logging
 import re
@@ -33,6 +32,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .cudnn_guard import cudnn_for_clips
 from .speaker_merge import PAGE_GROUP_MIN_SECONDS, TurnGroup, same_person
 
 logger = logging.getLogger(__name__)
@@ -133,25 +133,8 @@ class RedimnetBackend(EmbeddingBackend):
             total = torch.cuda.get_device_properties(0).total_memory
             torch.cuda.set_per_process_memory_fraction(min(1.0, MAX_GPU_BYTES / total))
 
-    @staticmethod
-    @contextlib.contextmanager
-    def _cudnn_for_clips():
-        """Every clip has its own length, and what cuDNN does with a new length
-        depends on two process-wide switches other libraries set. wespeaker's load
-        turns benchmark mode on: a search per length (10 clips took 103 s against 3 s,
-        one run peaked at 58 GB). pyannote turns TF32 off, and without the search the
-        default algorithm for some lengths then wants over 100 GB at once: a single
-        1.8 s clip exhausted the host's memory, and the kernel killed the worker with
-        it. With TF32 on and no search: 1.2 GB, 0.1 s, the same embeddings."""
-        import torch
-
-        cudnn = torch.backends.cudnn
-        saved = cudnn.benchmark, cudnn.allow_tf32
-        cudnn.benchmark, cudnn.allow_tf32 = False, True
-        try:
-            yield
-        finally:
-            cudnn.benchmark, cudnn.allow_tf32 = saved
+    # Why: cudnn_guard's docstring (a 1.8 s clip once exhausted the host).
+    _cudnn_for_clips = staticmethod(cudnn_for_clips)
 
     def embed(self, waveform: np.ndarray) -> np.ndarray:
         import torch
@@ -185,7 +168,8 @@ class EcapaBackend(EmbeddingBackend):
 
     def embed(self, waveform: np.ndarray) -> np.ndarray:
         wav = self._torch.from_numpy(np.ascontiguousarray(waveform, dtype=np.float32)).unsqueeze(0)
-        emb = self._model.encode_batch(wav)
+        with cudnn_for_clips():
+            emb = self._model.encode_batch(wav)
         vec = emb.detach().cpu().numpy().reshape(-1).astype(np.float64)
         return vec / (np.linalg.norm(vec) or 1.0)
 

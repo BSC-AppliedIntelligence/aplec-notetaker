@@ -19,6 +19,8 @@ import math
 import threading
 from dataclasses import dataclass
 
+from .cudnn_guard import cudnn_for_clips
+
 logger = logging.getLogger(__name__)
 
 # Log-space stickiness bonuses (e^2 ~ 7.4x, e^1 ~ 2.7x). Validated on meeting
@@ -149,7 +151,8 @@ class EcapaLanguageId:
         if len(chunk) < sample_rate // 4:  # <0.25s: not classifiable
             return {}
         tensor = torch.from_numpy(chunk).unsqueeze(0)
-        out = clf.classify_batch(tensor)[0].exp().squeeze()
+        with cudnn_for_clips():  # without it: 1-2 s bursts of ~20 GB per span
+            out = clf.classify_batch(tensor)[0].exp().squeeze()
         result: dict[str, float] = {}
         for idx, prob in enumerate(out.tolist()):
             label = clf.hparams.label_encoder.decode_ndim(idx)  # "tr: Turkish"
