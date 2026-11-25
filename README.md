@@ -33,7 +33,7 @@ that provider.
 
 ## Requirements
 
-| | |
+| Requirement | Details |
 | --- | --- |
 | GPU | NVIDIA with CUDA. Transcription and diarization always run on it and peak around 8 GB. The default local LLM (Qwen3.8-27B, Q6_K) needs about 25 GB more; with a remote or hosted LLM it is not needed. Developed on an NVIDIA GB10 (ARM64, unified memory). |
 | Disk | About 4 GB of models, plus 23 GB for the local LLM. Meeting audio is deleted after 15 days by default; transcripts and notes are kept. |
